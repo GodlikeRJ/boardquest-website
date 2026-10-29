@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rohit Jana | Creator of BoardQuest CBSE 10th</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Plus Jakarta Sans', 'sans-serif'],
+                    },
+                    colors: {
+                        brand: {
+                            cyan: '#22d3ee',
+                            purple: '#a78bfa',
+                            dark: '#05060f',
+                            card: 'rgba(15, 23, 42, 0.75)'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            background: radial-gradient(ellipse at 50% 30%, #0f172a 0%, #05060f 80%);
+            color: #f8fafc;
+        }
+        .glass {
+            background: rgba(15, 23, 42, 0.65);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        .glow-cyan {
+            box-shadow: 0 0 30px rgba(34, 211, 238, 0.25);
+        }
+        .glow-purple {
+            box-shadow: 0 0 30px rgba(167, 139, 250, 0.25);
+        }
+        .gradient-text {
+            background: linear-gradient(135deg, #22d3ee 0%, #a78bfa 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+    </style>
+</head>
+<body class="min-h-screen font-sans selection:bg-cyan-500 selection:text-slate-900">
+
+    <!-- Navigation Header -->
+    <header class="fixed top-0 left-0 right-0 z-50 p-4">
+        <div class="max-w-6xl mx-auto glass rounded-2xl px-6 py-3 flex justify-between items-center">
+            <div class="flex items-center gap-3">
+                <span class="text-2xl">🎓</span>
+                <span class="font-bold text-lg tracking-tight">BoardQuest<span class="text-cyan-400">.</span></span>
+            </div>
+            <nav class="hidden md:flex items-center gap-8 text-sm font-medium text-slate-300">
+                <a href="#about" class="hover:text-cyan-300 transition-colors">About Me</a>
+                <a href="#app" class="hover:text-cyan-300 transition-colors">The App</a>
+                <a href="#insights" class="hover:text-cyan-300 transition-colors">App Insights</a>
+                <a href="#tech" class="hover:text-cyan-300 transition-colors">Tech Stack</a>
+            </nav>
+            <a href="https://hello-rohit-jana-bm20cy.v2.appdeploy.ai/" target="_blank" class="px-4 py-2 rounded-xl bg-gradient-to-r from-cyan-400 to-violet-500 text-slate-950 font-extrabold text-xs hover:opacity-90 transition-opacity shadow-[0_0_20px_rgba(34,211,238,0.4)]">
+                Launch App 🚀
+            </a>
+        </div>
+    </header>
+
+    <!-- Hero Section -->
+    <section class="pt-36 pb-20 px-6">
+        <div class="max-w-5xl mx-auto text-center space-y-6">
+            <div class="inline-flex items-center gap-2 px-4 py-2 rounded-full glass border border-cyan-400/30 text-xs text-cyan-300 font-semibold">
+                <span class="animate-pulse">✨</span> Next-Gen Gamified CBSE Learning Platform
+            </div>
+            <h1 class="text-4xl md:text-7xl font-extrabold tracking-tight leading-tight">
+                Empowering Class 10 Students with <br><span class="gradient-text">Interactive 3D Questing</span>
+            </h1>
+            <p class="text-slate-400 text-base md:text-lg max-w-2xl mx-auto leading-relaxed">
+                Welcome! I am <b>Rohit Jana</b>. I built <b>BoardQuest</b> to turn standard CBSE Class 10 revision into an engaging, interactive, non-repetitive learning experience powered by AI diagnostics.
+            </p>
+            <div class="flex flex-wrap justify-center gap-4 pt-4">
+                <a href="https://hello-rohit-jana-bm20cy.v2.appdeploy.ai/" target="_blank" class="px-8 py-3.5 rounded-2xl bg-gradient-to-r from-cyan-400 to-violet-500 text-slate-950 font-bold text-sm hover:scale-105 transition-transform glow-cyan">
+                    Play & Learn Now
+                </a>
+                <a href="#insights" class="px-8 py-3.5 rounded-2xl glass hover:bg-white/10 text-slate-200 font-bold text-sm transition-colors">
+                    Explore Insights
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Creator Introduction Section -->
+    <section id="about" class="py-16 px-6">
+        <div class="max-w-5xl mx-auto">
+            <div class="glass p-8 md:p-12 rounded-3xl glow-purple border border-violet-500/20 grid grid-cols-1 md:grid-cols-3 gap-8 items-center">
+                <div class="flex flex-col items-center text-center space-y-4">
+                    <div class="w-32 h-32 rounded-2xl bg-gradient-to-br from-cyan-400 to-purple-600 p-1">
+                        <img src="https://placehold.co/300x300/0f172a/22d3ee?text=Rohit+Jana" alt="Rohit Jana" class="w-full h-full object-cover rounded-xl">
+                    </div>
+                    <div>
+                        <h3 class="font-extrabold text-xl text-white">Rohit Jana</h3>
+                        <p class="text-xs text-cyan-400 font-semibold">Creator & Developer</p>
+                    </div>
+                </div>
+                <div class="md:col-span-2 space-y-4 text-slate-300 text-sm leading-relaxed">
+                    <h2 class="text-2xl font-bold text-white tracking-tight">Hi, I'm Rohit! 👋</h2>
+                    <p>
+                        I created <b>BoardQuest</b> with the vision of solving two major challenges faced by CBSE Class 10 board exam aspirants: monotonous textbook revision and silent knowledge gaps.
+                    </p>
+                    <p>
+                        By combining a full <b>3D dynamic board game</b> built with Three.js, a <b>non-repeating question engine</b>, and an integrated <b>Gemini Personal AI Tutor</b>, BoardQuest helps students master all 6 board subjects (Maths, Science, SST, English, Hindi, and IT 402) while tracking real-time diagnostic performance.
+                    </p>
+                    <div class="flex flex-wrap gap-2 pt-2">
+                        <span class="px-3 py-1 rounded-lg bg-cyan-950/60 border border-cyan-500/30 text-cyan-300 text-xs font-semibold">Educational Tech</span>
+                        <span class="px-3 py-1 rounded-lg bg-purple-950/60 border border-purple-500/30 text-purple-300 text-xs font-semibold">3D Web Apps</span>
+                        <span class="px-3 py-1 rounded-lg bg-amber-950/60 border border-amber-500/30 text-amber-300 text-xs font-semibold">AI Integration</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- App Overview & Highlights -->
+    <section id="app" class="py-16 px-6">
+        <div class="max-w-6xl mx-auto space-y-12">
+            <div class="text-center space-y-3">
+                <h2 class="text-3xl font-extrabold text-white">BoardQuest Core Features</h2>
+                <p class="text-slate-400 text-sm max-w-xl mx-auto">Designed for comprehensive syllabus completion and high board performance.</p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <!-- Feature 1 -->
+                <div class="glass p-6 rounded-2xl hover:border-cyan-400/50 transition-all space-y-3">
+                    <div class="w-12 h-12 rounded-xl bg-cyan-400/10 border border-cyan-400/30 flex items-center justify-center text-2xl">🎲</div>
+                    <h3 class="font-bold text-lg text-white">Interactive 3D Board</h3>
+                    <p class="text-slate-400 text-xs leading-relaxed">
+                        Features over 100+ board chapters mapped in a continuous 3D spiral scene with dynamic lighting matching each subject theme.
+                    </p>
+                </div>
+                <!-- Feature 2 -->
+                <div class="glass p-6 rounded-2xl hover:border-purple-400/50 transition-all space-y-3">
+                    <div class="w-12 h-12 rounded-xl bg-purple-400/10 border border-purple-400/30 flex items-center justify-center text-2xl">⚡</div>
+                    <h3 class="font-bold text-lg text-white">Non-Repeating Engine</h3>
+                    <p class="text-slate-400 text-xs leading-relaxed">
+                        Ensures questions never repeat across quizzes by dynamically parametrizing formulas and scenarios per chapter.
+                    </p>
+                </div>
+                <!-- Feature 3 -->
+                <div class="glass p-6 rounded-2xl hover:border-amber-400/50 transition-all space-y-3">
+                    <div class="w-12 h-12 rounded-xl bg-amber-400/10 border border-amber-400/30 flex items-center justify-center text-2xl">🔍</div>
+                    <h3 class="font-bold text-lg text-white">Deep Diagnostic Analysis</h3>
+                    <p class="text-slate-400 text-xs leading-relaxed">
+                        Incorrect answers trigger targeted topic breakdowns, highlighting exact weak concepts for revision.
+                    </p>
+                </div>
+                <!-- Feature 4 -->
+                <div class="glass p-6 rounded-2xl hover:border-emerald-400/50 transition-all space-y-3">
+                    <div class="w-12 h-12 rounded-xl bg-emerald-400/10 border border-emerald-400/30 flex items-center justify-center text-2xl">📚</div>
+                    <h3 class="font-bold text-lg text-white">NCERT & PW Notes</h3>
+                    <p class="text-slate-400 text-xs leading-relaxed">
+                        Includes high-yield revision notes, key formulas, board glossary terms, and structured 3-column study library PDFs.
+                    </p>
+                </div>
+                <!-- Feature 5 -->
+                <div class="glass p-6 rounded-2xl hover:border-sky-400/50 transition-all space-y-3">
+                    <div class="w-12 h-12 rounded-xl bg-sky-400/10 border border-sky-400/30 flex items-center justify-center text-2xl">✨</div>
+                    <h3 class="font-bold text-lg text-white">Gemini AI Teacher</h3>
+                    <p class="text-slate-400 text-xs leading-relaxed">
+                        Integrated AI chat assistant to explain concepts, generate competency questions, and draft 7-day revision schedules.
+                    </p>
+                </div>
+                <!-- Feature 6 -->
+                <div class="glass p-6 rounded-2xl hover:border-pink-400/50 transition-all space-y-3">
+                    <div class="w-12 h-12 rounded-xl bg-pink-400/10 border border-pink-400/30 flex items-center justify-center text-2xl">⏱️</div>
+                    <h3 class="font-bold text-lg text-white">Inbuilt Exam Timer</h3>
+                    <p class="text-slate-400 text-xs leading-relaxed">
+                        Practice under realistic board conditions with toggleable 3-hour exam countdowns, test timers, and 25-min Pomodoro modes.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- App Insights & Statistics -->
+    <section id="insights" class="py-16 px-6 bg-slate-900/40">
+        <div class="max-w-5xl mx-auto space-y-10">
+            <div class="text-center space-y-2">
+                <h2 class="text-3xl font-extrabold text-white">Application Insights & Impact</h2>
+                <p class="text-slate-400 text-sm">Key metrics powering the student learning experience.</p>
+            </div>
+
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
+                <div class="glass p-6 rounded-2xl space-y-1">
+                    <div class="text-3xl font-extrabold text-cyan-300">100+</div>
+                    <div class="text-xs text-slate-400">CBSE Chapters</div>
+                </div>
+                <div class="glass p-6 rounded-2xl space-y-1">
+                    <div class="text-3xl font-extrabold text-purple-300">6</div>
+                    <div class="text-xs text-slate-400">Core Subjects</div>
+                </div>
+                <div class="glass p-6 rounded-2xl space-y-1">
+                    <div class="text-3xl font-extrabold text-amber-300">100%</div>
+                    <div class="text-xs text-slate-400">Competency Coverage</div>
+                </div>
+                <div class="glass p-6 rounded-2xl space-y-1">
+                    <div class="text-3xl font-extrabold text-emerald-300">Real-time</div>
+                    <div class="text-xs text-slate-400">Account Progress Sync</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="py-8 px-6 border-t border-slate-800 text-center text-xs text-slate-500">
+        <p>Created with ❤️ by <b>Rohit Jana</b> • BoardQuest CBSE Class 10 Prep Platform</p>
+    </footer>
+
+</body>
+</html>
