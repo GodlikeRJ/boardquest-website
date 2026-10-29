@@ -1,223 +1,446 @@
 <!DOCTYPE html>
-<html lang="en" class="scroll-smooth">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Rohit Jana | Creator of BoardQuest CBSE 10th</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;600;700;800&display=swap" rel="stylesheet">
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    fontFamily: {
-                        sans: ['Plus Jakarta Sans', 'sans-serif'],
-                    },
-                    colors: {
-                        brand: {
-                            cyan: '#22d3ee',
-                            purple: '#a78bfa',
-                            dark: '#05060f',
-                            card: 'rgba(15, 23, 42, 0.75)'
-                        }
-                    }
-                }
-            }
-        }
-    </script>
+    <title>BoardQuest - CBSE Class 10 Study Hub</title>
     <style>
+        :root {
+            --bg-primary: #0f172a;
+            --bg-secondary: #1e293b;
+            --accent-color: #6366f1;
+            --accent-hover: #4f46e5;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --border-color: #334155;
+            --card-bg: rgba(30, 41, 59, 0.7);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
         body {
-            background: radial-gradient(ellipse at 50% 30%, #0f172a 0%, #05060f 80%);
-            color: #f8fafc;
+            background-color: var(--bg-primary);
+            color: var(--text-main);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
         }
-        .glass {
-            background: rgba(15, 23, 42, 0.65);
-            backdrop-filter: blur(16px);
-            -webkit-backdrop-filter: blur(16px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
+
+        /* Navigation Header */
+        header {
+            background: rgba(15, 23, 42, 0.9);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid var(--border-color);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            padding: 1rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
         }
-        .glow-cyan {
-            box-shadow: 0 0 30px rgba(34, 211, 238, 0.25);
-        }
-        .glow-purple {
-            box-shadow: 0 0 30px rgba(167, 139, 250, 0.25);
-        }
-        .gradient-text {
-            background: linear-gradient(135deg, #22d3ee 0%, #a78bfa 100%);
+
+        .logo {
+            font-size: 1.5rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, #818cf8, #c084fc);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        nav ul {
+            display: flex;
+            list-style: none;
+            gap: 1.5rem;
+        }
+
+        nav a {
+            color: var(--text-muted);
+            text-decoration: none;
+            font-weight: 500;
+            transition: color 0.3s;
+        }
+
+        nav a:hover, nav a.active {
+            color: var(--text-main);
+        }
+
+        /* Main Container */
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+            width: 100%;
+            flex: 1;
+        }
+
+        /* Hero Showcase Section */
+        .hero {
+            text-align: center;
+            padding: 3rem 1rem;
+            background: radial-gradient(circle at top, rgba(99, 102, 241, 0.15) 0%, transparent 70%);
+            border-radius: 1rem;
+            border: 1px solid var(--border-color);
+            margin-bottom: 3rem;
+        }
+
+        .hero h1 {
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .hero p {
+            color: var(--text-muted);
+            font-size: 1.1rem;
+            max-width: 700px;
+            margin: 0 auto 2rem auto;
+            line-height: 1.6;
+        }
+
+        .btn {
+            background: var(--accent-color);
+            color: white;
+            padding: 0.75rem 1.75rem;
+            border-radius: 0.5rem;
+            border: none;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.3s, transform 0.2s;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .btn:hover {
+            background: var(--accent-hover);
+            transform: translateY(-2px);
+        }
+
+        /* Section Layout */
+        .section-title {
+            font-size: 1.8rem;
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        /* Feature Grid */
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 3rem;
+        }
+
+        .card {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 0.75rem;
+            padding: 1.5rem;
+            transition: border-color 0.3s, transform 0.3s;
+        }
+
+        .card:hover {
+            border-color: var(--accent-color);
+            transform: translateY(-4px);
+        }
+
+        .card-icon {
+            font-size: 2rem;
+            margin-bottom: 1rem;
+        }
+
+        .card h3 {
+            margin-bottom: 0.5rem;
+            font-size: 1.2rem;
+        }
+
+        .card p {
+            color: var(--text-muted);
+            font-size: 0.95rem;
+            line-height: 1.5;
+        }
+
+        /* Interactive App Workstation Section */
+        .app-workspace {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 1rem;
+            overflow: hidden;
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3);
+            margin-bottom: 3rem;
+        }
+
+        .app-header {
+            background: rgba(15, 23, 42, 0.8);
+            padding: 1rem 1.5rem;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .app-controls {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+        }
+
+        .dot-red { background-color: #ef4444; }
+        .dot-yellow { background-color: #f59e0b; }
+        .dot-green { background-color: #10b981; }
+
+        .app-body {
+            padding: 2rem;
+        }
+
+        /* Interactive Modules */
+        .module-tabs {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 0.5rem;
+        }
+
+        .tab-btn {
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            font-size: 1rem;
+            padding: 0.5rem 1rem;
+            cursor: pointer;
+            border-radius: 0.375rem;
+            transition: all 0.2s;
+        }
+
+        .tab-btn.active {
+            background: var(--accent-color);
+            color: white;
+        }
+
+        .module-content {
+            display: none;
+        }
+
+        .module-content.active {
+            display: block;
+        }
+
+        /* Quiz UI */
+        .quiz-box {
+            background: var(--bg-primary);
+            padding: 1.5rem;
+            border-radius: 0.5rem;
+            border: 1px solid var(--border-color);
+        }
+
+        .quiz-option {
+            display: block;
+            width: 100%;
+            text-align: left;
+            background: var(--bg-secondary);
+            color: var(--text-main);
+            border: 1px solid var(--border-color);
+            padding: 0.75rem 1rem;
+            margin: 0.5rem 0;
+            border-radius: 0.375rem;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .quiz-option:hover {
+            background: var(--accent-color);
+        }
+
+        /* Footer */
+        footer {
+            border-top: 1px solid var(--border-color);
+            padding: 2rem;
+            text-align: center;
+            color: var(--text-muted);
+            font-size: 0.9rem;
+            margin-top: auto;
         }
     </style>
 </head>
-<body class="min-h-screen font-sans selection:bg-cyan-500 selection:text-slate-900">
+<body>
 
-    <!-- Navigation Header -->
-    <header class="fixed top-0 left-0 right-0 z-50 p-4">
-        <div class="max-w-6xl mx-auto glass rounded-2xl px-6 py-3 flex justify-between items-center">
-            <div class="flex items-center gap-3">
-                <span class="text-2xl">🎓</span>
-                <span class="font-bold text-lg tracking-tight">BoardQuest<span class="text-cyan-400">.</span></span>
-            </div>
-            <nav class="hidden md:flex items-center gap-8 text-sm font-medium text-slate-300">
-                <a href="#about" class="hover:text-cyan-300 transition-colors">About Me</a>
-                <a href="#app" class="hover:text-cyan-300 transition-colors">The App</a>
-                <a href="#insights" class="hover:text-cyan-300 transition-colors">App Insights</a>
-                <a href="#tech" class="hover:text-cyan-300 transition-colors">Tech Stack</a>
-            </nav>
-            <a href="https://hello-rohit-jana-bm20cy.v2.appdeploy.ai/" target="_blank" class="px-4 py-2 rounded-xl bg-gradient-to-r from-cyan-400 to-violet-500 text-slate-950 font-extrabold text-xs hover:opacity-90 transition-opacity shadow-[0_0_20px_rgba(34,211,238,0.4)]">
-                Launch App 🚀
-            </a>
+    <!-- Header Navigation -->
+    <header>
+        <div class="logo">
+            ⚡ BoardQuest
         </div>
+        <nav>
+            <ul>
+                <li><a href="#about" class="active">Overview</a></li>
+                <li><a href="#features">Features</a></li>
+                <li><a href="#app">Launch App</a></li>
+            </ul>
+        </nav>
     </header>
 
-    <!-- Hero Section -->
-    <section class="pt-36 pb-20 px-6">
-        <div class="max-w-5xl mx-auto text-center space-y-6">
-            <div class="inline-flex items-center gap-2 px-4 py-2 rounded-full glass border border-cyan-400/30 text-xs text-cyan-300 font-semibold">
-                <span class="animate-pulse">✨</span> Next-Gen Gamified CBSE Learning Platform
-            </div>
-            <h1 class="text-4xl md:text-7xl font-extrabold tracking-tight leading-tight">
-                Empowering Class 10 Students with <br><span class="gradient-text">Interactive 3D Questing</span>
-            </h1>
-            <p class="text-slate-400 text-base md:text-lg max-w-2xl mx-auto leading-relaxed">
-                Welcome! I am <b>Rohit Jana</b>. I built <b>BoardQuest</b> to turn standard CBSE Class 10 revision into an engaging, interactive, non-repetitive learning experience powered by AI diagnostics.
-            </p>
-            <div class="flex flex-wrap justify-center gap-4 pt-4">
-                <a href="https://hello-rohit-jana-bm20cy.v2.appdeploy.ai/" target="_blank" class="px-8 py-3.5 rounded-2xl bg-gradient-to-r from-cyan-400 to-violet-500 text-slate-950 font-bold text-sm hover:scale-105 transition-transform glow-cyan">
-                    Play & Learn Now
-                </a>
-                <a href="#insights" class="px-8 py-3.5 rounded-2xl glass hover:bg-white/10 text-slate-200 font-bold text-sm transition-colors">
-                    Explore Insights
-                </a>
-            </div>
-        </div>
-    </section>
+    <div class="container">
+        <!-- Hero Section -->
+        <section class="hero" id="about">
+            <h1>CBSE Class 10 Board Prep Portal</h1>
+            <p>Welcome to <strong>BoardQuest</strong> — an interactive study suite built specifically for Class 10 CBSE students. Practice non-repeating quizzes, access high-yield Physics Wallah & NCERT revision notes, and track your study focus effortlessly.</p>
+            <a href="#app" class="btn">Start Studying Now</a>
+        </section>
 
-    <!-- Creator Introduction Section -->
-    <section id="about" class="py-16 px-6">
-        <div class="max-w-5xl mx-auto">
-            <div class="glass p-8 md:p-12 rounded-3xl glow-purple border border-violet-500/20 grid grid-cols-1 md:grid-cols-3 gap-8 items-center">
-                <div class="flex flex-col items-center text-center space-y-4">
-                    <div class="w-32 h-32 rounded-2xl bg-gradient-to-br from-cyan-400 to-purple-600 p-1">
-                        <img src="https://placehold.co/300x300/0f172a/22d3ee?text=Rohit+Jana" alt="Rohit Jana" class="w-full h-full object-cover rounded-xl">
+        <!-- Insights & Features Section -->
+        <section id="features">
+            <h2 class="section-title">✨ Key App Insights</h2>
+            <div class="grid">
+                <div class="card">
+                    <div class="card-icon">🧠</div>
+                    <h3>Smart Practice Engine</h3>
+                    <p>Dynamic non-repeating quizzes spanning Science, Mathematics, and Social Science to evaluate concepts effectively.</p>
+                </div>
+                <div class="card">
+                    <div class="card-icon">📚</div>
+                    <h3>Targeted Study Notes</h3>
+                    <p>Curated summaries and key formula sheets aligned with Class 10 NCERT curriculum and board guidelines.</p>
+                </div>
+                <div class="card">
+                    <div class="card-icon">⏱️</div>
+                    <h3>Focus Practice Timers</h3>
+                    <p>Integrated study timers and revision sessions engineered to maintain steady board preparation momentum.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Live Embedded Interactive App -->
+        <section id="app">
+            <h2 class="section-title">🚀 BoardQuest Live Interface</h2>
+            <div class="app-workspace">
+                <div class="app-header">
+                    <div class="app-controls">
+                        <span class="dot dot-red"></span>
+                        <span class="dot dot-yellow"></span>
+                        <span class="dot dot-green"></span>
                     </div>
-                    <div>
-                        <h3 class="font-extrabold text-xl text-white">Rohit Jana</h3>
-                        <p class="text-xs text-cyan-400 font-semibold">Creator & Developer</p>
+                    <span style="font-size: 0.85rem; color: var(--text-muted);">boardquest.internal.v1</span>
+                </div>
+                <div class="app-body">
+                    <div class="module-tabs">
+                        <button class="tab-btn active" onclick="switchTab('quiz')">Quick Quiz</button>
+                        <button class="tab-btn" onclick="switchTab('notes')">Revision Notes</button>
+                        <button class="tab-btn" onclick="switchTab('timer')">Focus Timer</button>
                     </div>
-                </div>
-                <div class="md:col-span-2 space-y-4 text-slate-300 text-sm leading-relaxed">
-                    <h2 class="text-2xl font-bold text-white tracking-tight">Hi, I'm Rohit! 👋</h2>
-                    <p>
-                        I created <b>BoardQuest</b> with the vision of solving two major challenges faced by CBSE Class 10 board exam aspirants: monotonous textbook revision and silent knowledge gaps.
-                    </p>
-                    <p>
-                        By combining a full <b>3D dynamic board game</b> built with Three.js, a <b>non-repeating question engine</b>, and an integrated <b>Gemini Personal AI Tutor</b>, BoardQuest helps students master all 6 board subjects (Maths, Science, SST, English, Hindi, and IT 402) while tracking real-time diagnostic performance.
-                    </p>
-                    <div class="flex flex-wrap gap-2 pt-2">
-                        <span class="px-3 py-1 rounded-lg bg-cyan-950/60 border border-cyan-500/30 text-cyan-300 text-xs font-semibold">Educational Tech</span>
-                        <span class="px-3 py-1 rounded-lg bg-purple-950/60 border border-purple-500/30 text-purple-300 text-xs font-semibold">3D Web Apps</span>
-                        <span class="px-3 py-1 rounded-lg bg-amber-950/60 border border-amber-500/30 text-amber-300 text-xs font-semibold">AI Integration</span>
+
+                    <!-- Module 1: Quiz -->
+                    <div id="quiz-module" class="module-content active">
+                        <div class="quiz-box">
+                            <h4 id="question-text">Q: Which of the following metals reacts violently with cold water?</h4>
+                            <div style="margin-top: 1rem;">
+                                <button class="quiz-option" onclick="checkAnswer(false, this)">A) Iron (Fe)</button>
+                                <button class="quiz-option" onclick="checkAnswer(true, this)">B) Sodium (Na)</button>
+                                <button class="quiz-option" onclick="checkAnswer(false, this)">C) Copper (Cu)</button>
+                                <button class="quiz-option" onclick="checkAnswer(false, this)">D) Gold (Au)</button>
+                            </div>
+                            <p id="quiz-feedback" style="margin-top: 1rem; font-weight: bold;"></p>
+                        </div>
                     </div>
-                </div>
-            </div>
-        </div>
-    </section>
 
-    <!-- App Overview & Highlights -->
-    <section id="app" class="py-16 px-6">
-        <div class="max-w-6xl mx-auto space-y-12">
-            <div class="text-center space-y-3">
-                <h2 class="text-3xl font-extrabold text-white">BoardQuest Core Features</h2>
-                <p class="text-slate-400 text-sm max-w-xl mx-auto">Designed for comprehensive syllabus completion and high board performance.</p>
-            </div>
+                    <!-- Module 2: Notes -->
+                    <div id="notes-module" class="module-content">
+                        <div class="quiz-box">
+                            <h4>📘 Science Quick Revision: Chemical Reactions</h4>
+                            <ul style="margin-top: 1rem; padding-left: 1.5rem; color: var(--text-muted); line-height: 1.8;">
+                                <li><strong>Combination Reaction:</strong> Two reactants combine to form a single product ($A + B \rightarrow AB$).</li>
+                                <li><strong>Decomposition Reaction:</strong> A single compound breaks down into simpler substances ($AB \rightarrow A + B$).</li>
+                                <li><strong>Displacement Reaction:</strong> A more reactive element displaces a less reactive element from its salt solution.</li>
+                            </ul>
+                        </div>
+                    </div>
 
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <!-- Feature 1 -->
-                <div class="glass p-6 rounded-2xl hover:border-cyan-400/50 transition-all space-y-3">
-                    <div class="w-12 h-12 rounded-xl bg-cyan-400/10 border border-cyan-400/30 flex items-center justify-center text-2xl">🎲</div>
-                    <h3 class="font-bold text-lg text-white">Interactive 3D Board</h3>
-                    <p class="text-slate-400 text-xs leading-relaxed">
-                        Features over 100+ board chapters mapped in a continuous 3D spiral scene with dynamic lighting matching each subject theme.
-                    </p>
-                </div>
-                <!-- Feature 2 -->
-                <div class="glass p-6 rounded-2xl hover:border-purple-400/50 transition-all space-y-3">
-                    <div class="w-12 h-12 rounded-xl bg-purple-400/10 border border-purple-400/30 flex items-center justify-center text-2xl">⚡</div>
-                    <h3 class="font-bold text-lg text-white">Non-Repeating Engine</h3>
-                    <p class="text-slate-400 text-xs leading-relaxed">
-                        Ensures questions never repeat across quizzes by dynamically parametrizing formulas and scenarios per chapter.
-                    </p>
-                </div>
-                <!-- Feature 3 -->
-                <div class="glass p-6 rounded-2xl hover:border-amber-400/50 transition-all space-y-3">
-                    <div class="w-12 h-12 rounded-xl bg-amber-400/10 border border-amber-400/30 flex items-center justify-center text-2xl">🔍</div>
-                    <h3 class="font-bold text-lg text-white">Deep Diagnostic Analysis</h3>
-                    <p class="text-slate-400 text-xs leading-relaxed">
-                        Incorrect answers trigger targeted topic breakdowns, highlighting exact weak concepts for revision.
-                    </p>
-                </div>
-                <!-- Feature 4 -->
-                <div class="glass p-6 rounded-2xl hover:border-emerald-400/50 transition-all space-y-3">
-                    <div class="w-12 h-12 rounded-xl bg-emerald-400/10 border border-emerald-400/30 flex items-center justify-center text-2xl">📚</div>
-                    <h3 class="font-bold text-lg text-white">NCERT & PW Notes</h3>
-                    <p class="text-slate-400 text-xs leading-relaxed">
-                        Includes high-yield revision notes, key formulas, board glossary terms, and structured 3-column study library PDFs.
-                    </p>
-                </div>
-                <!-- Feature 5 -->
-                <div class="glass p-6 rounded-2xl hover:border-sky-400/50 transition-all space-y-3">
-                    <div class="w-12 h-12 rounded-xl bg-sky-400/10 border border-sky-400/30 flex items-center justify-center text-2xl">✨</div>
-                    <h3 class="font-bold text-lg text-white">Gemini AI Teacher</h3>
-                    <p class="text-slate-400 text-xs leading-relaxed">
-                        Integrated AI chat assistant to explain concepts, generate competency questions, and draft 7-day revision schedules.
-                    </p>
-                </div>
-                <!-- Feature 6 -->
-                <div class="glass p-6 rounded-2xl hover:border-pink-400/50 transition-all space-y-3">
-                    <div class="w-12 h-12 rounded-xl bg-pink-400/10 border border-pink-400/30 flex items-center justify-center text-2xl">⏱️</div>
-                    <h3 class="font-bold text-lg text-white">Inbuilt Exam Timer</h3>
-                    <p class="text-slate-400 text-xs leading-relaxed">
-                        Practice under realistic board conditions with toggleable 3-hour exam countdowns, test timers, and 25-min Pomodoro modes.
-                    </p>
-                </div>
-            </div>
-        </div>
-    </section>
+                    <!-- Module 3: Timer -->
+                    <div id="timer-module" class="module-content">
+                        <div class="quiz-box" style="text-align: center;">
+                            <h4>⏱️ Study Timer</h4>
+                            <div id="timer-display" style="font-size: 3rem; font-weight: bold; margin: 1rem 0; color: #818cf8;">25:00</div>
+                            <button class="btn" onclick="toggleTimer()" id="timer-btn">Start Session</button>
+                        </div>
+                    </div>
 
-    <!-- App Insights & Statistics -->
-    <section id="insights" class="py-16 px-6 bg-slate-900/40">
-        <div class="max-w-5xl mx-auto space-y-10">
-            <div class="text-center space-y-2">
-                <h2 class="text-3xl font-extrabold text-white">Application Insights & Impact</h2>
-                <p class="text-slate-400 text-sm">Key metrics powering the student learning experience.</p>
-            </div>
-
-            <div class="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
-                <div class="glass p-6 rounded-2xl space-y-1">
-                    <div class="text-3xl font-extrabold text-cyan-300">100+</div>
-                    <div class="text-xs text-slate-400">CBSE Chapters</div>
-                </div>
-                <div class="glass p-6 rounded-2xl space-y-1">
-                    <div class="text-3xl font-extrabold text-purple-300">6</div>
-                    <div class="text-xs text-slate-400">Core Subjects</div>
-                </div>
-                <div class="glass p-6 rounded-2xl space-y-1">
-                    <div class="text-3xl font-extrabold text-amber-300">100%</div>
-                    <div class="text-xs text-slate-400">Competency Coverage</div>
-                </div>
-                <div class="glass p-6 rounded-2xl space-y-1">
-                    <div class="text-3xl font-extrabold text-emerald-300">Real-time</div>
-                    <div class="text-xs text-slate-400">Account Progress Sync</div>
                 </div>
             </div>
-        </div>
-    </section>
+        </section>
+    </div>
 
     <!-- Footer -->
-    <footer class="py-8 px-6 border-t border-slate-800 text-center text-xs text-slate-500">
-        <p>Created with ❤️ by <b>Rohit Jana</b> • BoardQuest CBSE Class 10 Prep Platform</p>
+    <footer>
+        <p>Built for Class 10 CBSE Board Preparation | Hosted on Vercel</p>
     </footer>
 
+    <!-- JavaScript Application Logic -->
+    <script>
+        function switchTab(tabName) {
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+            document.querySelectorAll('.module-content').forEach(mod => mod.classList.remove('active'));
+
+            if (tabName === 'quiz') {
+                document.querySelectorAll('.tab-btn')[0].classList.add('active');
+                document.getElementById('quiz-module').classList.add('active');
+            } else if (tabName === 'notes') {
+                document.querySelectorAll('.tab-btn')[1].classList.add('active');
+                document.getElementById('notes-module').classList.add('active');
+            } else if (tabName === 'timer') {
+                document.querySelectorAll('.tab-btn')[2].classList.add('active');
+                document.getElementById('timer-module').classList.add('active');
+            }
+        }
+
+        function checkAnswer(isCorrect, element) {
+            const feedback = document.getElementById('quiz-feedback');
+            if (isCorrect) {
+                feedback.textContent = '✅ Correct! Sodium reacts vigorously with cold water to form Sodium Hydroxide and Hydrogen gas.';
+                feedback.style.color = '#10b981';
+            } else {
+                feedback.textContent = '❌ Incorrect. Try again!';
+                feedback.style.color = '#ef4444';
+            }
+        }
+
+        let timerInterval = null;
+        let timeLeft = 25 * 60;
+
+        function toggleTimer() {
+            const btn = document.getElementById('timer-btn');
+            if (timerInterval) {
+                clearInterval(timerInterval);
+                timerInterval = null;
+                btn.textContent = 'Start Session';
+            } else {
+                btn.textContent = 'Pause Session';
+                timerInterval = setInterval(() => {
+                    timeLeft--;
+                    const minutes = Math.floor(timeLeft / 60);
+                    const seconds = timeLeft % 60;
+                    document.getElementById('timer-display').textContent = 
+                        `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+                    
+                    if (timeLeft <= 0) {
+                        clearInterval(timerInterval);
+                        alert('Time is up! Great focus session.');
+                    }
+                }, 1000);
+            }
+        }
+    </script>
 </body>
 </html>
