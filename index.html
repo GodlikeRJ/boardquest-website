@@ -1,446 +1,1263 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>BoardQuest - CBSE Class 10 Study Hub</title>
-    <style>
-        :root {
-            --bg-primary: #0f172a;
-            --bg-secondary: #1e293b;
-            --accent-color: #6366f1;
-            --accent-hover: #4f46e5;
-            --text-main: #f8fafc;
-            --text-muted: #94a3b8;
-            --border-color: #334155;
-            --card-bg: rgba(30, 41, 59, 0.7);
-        }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<title>BoardQuest - CBSE Class 10 Prep</title>
+<script src="https://cdn.tailwindcss.com/3.4.17"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<!-- Firebase Module Imports -->
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+  import { getAuth, signInWithPopup, signInWithRedirect, getRedirectResult, GoogleAuthProvider, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+  import { getFirestore, doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        }
+  const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {
+    apiKey: "",
+    authDomain: "boardquest-cbse.firebaseapp.com",
+    projectId: "boardquest-cbse",
+    storageBucket: "boardquest-cbse.appspot.com",
+    messagingSenderId: "123456789",
+    appId: "1:123456789:web:abcdef"
+  };
 
-        body {
-            background-color: var(--bg-primary);
-            color: var(--text-main);
-            min-height: 100vh;
-            display: flex;
-            flex-direction: column;
-        }
+  try {
+    const app = initializeApp(firebaseConfig);
+    window.db = getFirestore(app);
+    window.auth = getAuth(app);
+    window.googleProvider = new GoogleAuthProvider();
+    window.signInWithPopup = signInWithPopup;
+    window.signInWithRedirect = signInWithRedirect;
+    window.signOut = signOut;
 
-        /* Navigation Header */
-        header {
-            background: rgba(15, 23, 42, 0.9);
-            backdrop-filter: blur(10px);
-            border-bottom: 1px solid var(--border-color);
-            position: sticky;
-            top: 0;
-            z-index: 100;
-            padding: 1rem 2rem;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
+    if (window.auth) {
+      getRedirectResult(window.auth).then((result) => {
+        if (result?.user) {
+          window.currentUser = result.user;
+          if(window.onGoogleSignInSuccess) window.onGoogleSignInSuccess(result.user);
         }
-
-        .logo {
-            font-size: 1.5rem;
-            font-weight: 700;
-            background: linear-gradient(135deg, #818cf8, #c084fc);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
+      }).catch((err) => {
+        if (err.code === 'auth/unauthorized-domain') {
+          console.warn("Firebase Auth: Domain not authorized in Firebase Console. Running in local fallback mode.");
+        } else {
+          console.log("Redirect login check:", err);
         }
+      });
 
-        nav ul {
-            display: flex;
-            list-style: none;
-            gap: 1.5rem;
+      onAuthStateChanged(window.auth, (user) => {
+        if (user) {
+          window.currentUser = user;
+          if(window.onGoogleSignInSuccess) window.onGoogleSignInSuccess(user);
+        } else if (!window.currentUser?.isLocal) {
+          window.currentUser = null;
+          if(window.onGoogleSignOutSuccess) window.onGoogleSignOutSuccess();
         }
+      }, (err) => {
+        console.warn("Auth state error:", err);
+      });
+    }
+  } catch(e) {
+    console.log("Firebase initialized in local/offline mode", e);
+  }
+</script>
 
-        nav a {
-            color: var(--text-muted);
-            text-decoration: none;
-            font-weight: 500;
-            transition: color 0.3s;
-        }
-
-        nav a:hover, nav a.active {
-            color: var(--text-main);
-        }
-
-        /* Main Container */
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 2rem;
-            width: 100%;
-            flex: 1;
-        }
-
-        /* Hero Showcase Section */
-        .hero {
-            text-align: center;
-            padding: 3rem 1rem;
-            background: radial-gradient(circle at top, rgba(99, 102, 241, 0.15) 0%, transparent 70%);
-            border-radius: 1rem;
-            border: 1px solid var(--border-color);
-            margin-bottom: 3rem;
-        }
-
-        .hero h1 {
-            font-size: 2.5rem;
-            margin-bottom: 1rem;
-        }
-
-        .hero p {
-            color: var(--text-muted);
-            font-size: 1.1rem;
-            max-width: 700px;
-            margin: 0 auto 2rem auto;
-            line-height: 1.6;
-        }
-
-        .btn {
-            background: var(--accent-color);
-            color: white;
-            padding: 0.75rem 1.75rem;
-            border-radius: 0.5rem;
-            border: none;
-            font-weight: 600;
-            cursor: pointer;
-            transition: background 0.3s, transform 0.2s;
-            text-decoration: none;
-            display: inline-block;
-        }
-
-        .btn:hover {
-            background: var(--accent-hover);
-            transform: translateY(-2px);
-        }
-
-        /* Section Layout */
-        .section-title {
-            font-size: 1.8rem;
-            margin-bottom: 1.5rem;
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-        }
-
-        /* Feature Grid */
-        .grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-            gap: 1.5rem;
-            margin-bottom: 3rem;
-        }
-
-        .card {
-            background: var(--card-bg);
-            border: 1px solid var(--border-color);
-            border-radius: 0.75rem;
-            padding: 1.5rem;
-            transition: border-color 0.3s, transform 0.3s;
-        }
-
-        .card:hover {
-            border-color: var(--accent-color);
-            transform: translateY(-4px);
-        }
-
-        .card-icon {
-            font-size: 2rem;
-            margin-bottom: 1rem;
-        }
-
-        .card h3 {
-            margin-bottom: 0.5rem;
-            font-size: 1.2rem;
-        }
-
-        .card p {
-            color: var(--text-muted);
-            font-size: 0.95rem;
-            line-height: 1.5;
-        }
-
-        /* Interactive App Workstation Section */
-        .app-workspace {
-            background: var(--bg-secondary);
-            border: 1px solid var(--border-color);
-            border-radius: 1rem;
-            overflow: hidden;
-            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3);
-            margin-bottom: 3rem;
-        }
-
-        .app-header {
-            background: rgba(15, 23, 42, 0.8);
-            padding: 1rem 1.5rem;
-            border-bottom: 1px solid var(--border-color);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .app-controls {
-            display: flex;
-            gap: 0.5rem;
-        }
-
-        .dot {
-            width: 12px;
-            height: 12px;
-            border-radius: 50%;
-        }
-
-        .dot-red { background-color: #ef4444; }
-        .dot-yellow { background-color: #f59e0b; }
-        .dot-green { background-color: #10b981; }
-
-        .app-body {
-            padding: 2rem;
-        }
-
-        /* Interactive Modules */
-        .module-tabs {
-            display: flex;
-            gap: 1rem;
-            margin-bottom: 1.5rem;
-            border-bottom: 1px solid var(--border-color);
-            padding-bottom: 0.5rem;
-        }
-
-        .tab-btn {
-            background: none;
-            border: none;
-            color: var(--text-muted);
-            font-size: 1rem;
-            padding: 0.5rem 1rem;
-            cursor: pointer;
-            border-radius: 0.375rem;
-            transition: all 0.2s;
-        }
-
-        .tab-btn.active {
-            background: var(--accent-color);
-            color: white;
-        }
-
-        .module-content {
-            display: none;
-        }
-
-        .module-content.active {
-            display: block;
-        }
-
-        /* Quiz UI */
-        .quiz-box {
-            background: var(--bg-primary);
-            padding: 1.5rem;
-            border-radius: 0.5rem;
-            border: 1px solid var(--border-color);
-        }
-
-        .quiz-option {
-            display: block;
-            width: 100%;
-            text-align: left;
-            background: var(--bg-secondary);
-            color: var(--text-main);
-            border: 1px solid var(--border-color);
-            padding: 0.75rem 1rem;
-            margin: 0.5rem 0;
-            border-radius: 0.375rem;
-            cursor: pointer;
-            transition: background 0.2s;
-        }
-
-        .quiz-option:hover {
-            background: var(--accent-color);
-        }
-
-        /* Footer */
-        footer {
-            border-top: 1px solid var(--border-color);
-            padding: 2rem;
-            text-align: center;
-            color: var(--text-muted);
-            font-size: 0.9rem;
-            margin-top: auto;
-        }
-    </style>
+<style>
+html,body{margin:0;height:100%;font-family:'Segoe UI',system-ui,-apple-system,Roboto,sans-serif}
+body{background:radial-gradient(ellipse at 50% 40%,#10163a 0%,#05060f 70%);overscroll-behavior:none}
+.panel{pointer-events:auto;background:rgba(10,12,30,.72);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border:1px solid rgba(255,255,255,.12);border-radius:16px;box-shadow:0 0 24px rgba(34,211,238,.12)}
+.btn{pointer-events:auto;border-radius:14px;padding:.8rem 1rem;font-weight:700;border:1px solid rgba(255,255,255,.18);background:rgba(10,12,30,.8);color:#e2e8f0;transition:transform .15s,box-shadow .2s}
+.btn:active{transform:scale(.96)}.btn:disabled{opacity:.45}
+.btn.main{background:linear-gradient(90deg,#22d3ee,#a78bfa);color:#05060f;border:0;box-shadow:0 0 22px rgba(34,211,238,.45)}
+.scene{perspective:1300px}
+.card3d{transform-style:preserve-3d;transition:transform .95s cubic-bezier(.2,.8,.2,1)}
+.card3d.flipped{transform:rotateY(180deg)}
+.face{position:absolute;inset:0;backface-visibility:hidden;-webkit-backface-visibility:hidden;border-radius:24px;border:2px solid var(--c);background:linear-gradient(160deg,#0c1228,#05060f);box-shadow:0 0 44px var(--c),inset 0 0 34px rgba(255,255,255,.04)}
+.back{transform:rotateY(180deg);overflow-y:auto}
+.pop{animation:pop .5s cubic-bezier(.2,.9,.3,1.3)}
+@keyframes pop{from{transform:scale(.6) translateY(40px);opacity:0}to{transform:none;opacity:1}}
+.qopt{display:block;width:100%;text-align:left;padding:.5rem .75rem;margin-bottom:.35rem;border-radius:10px;border:1px solid rgba(255,255,255,.18);font-size:.85rem;color:#e2e8f0;background:rgba(255,255,255,.04);transition:all .2s}
+.qopt:hover:not(:disabled){background:rgba(255,255,255,.12)}
+.qopt.ok{background:rgba(74,222,128,.25) !important;border-color:#4ade80 !important}
+.qopt.bad{background:rgba(248,113,113,.25) !important;border-color:#f87171 !important}
+.tab-btn{padding:.3rem .6rem;font-size:.75rem;border-radius:8px;border:1px solid rgba(255,255,255,.15);background:rgba(255,255,255,.05);color:#cbd5e1;cursor:pointer;white-space:nowrap}
+.tab-btn.active{background:var(--c);color:#05060f;font-weight:700;border-color:transparent}
+#sidebar, #aiDrawer{transition:transform .3s cubic-bezier(.4,0,.2,1)}
+#toast{transition:opacity .3s,transform .3s}
+::-webkit-scrollbar{width:6px;height:6px}
+::-webkit-scrollbar-thumb{background:rgba(255,255,255,.2);border-radius:4px}
+@media (prefers-reduced-motion:reduce){.card3d{transition-duration:.01s}.pop{animation:none}}
+</style>
 </head>
-<body>
+<body class="text-slate-100 overflow-hidden select-none">
+<canvas id="c" class="fixed inset-0 w-full h-full" style="touch-action:none"></canvas>
 
-    <!-- Header Navigation -->
-    <header>
-        <div class="logo">
-            ⚡ BoardQuest
-        </div>
-        <nav>
-            <ul>
-                <li><a href="#about" class="active">Overview</a></li>
-                <li><a href="#features">Features</a></li>
-                <li><a href="#app">Launch App</a></li>
-            </ul>
-        </nav>
-    </header>
+<!-- Top & Bottom Floating HUD Layout -->
+<div class="fixed inset-0 z-10 pointer-events-none flex flex-col justify-between p-2 sm:p-4" style="padding-top:max(.5rem,env(safe-area-inset-top));padding-bottom:max(.5rem,env(safe-area-inset-bottom))">
+  <div class="flex gap-2 items-stretch">
+    <button id="menuBtn" onclick="toggleSidebar()" class="btn pointer-events-auto !px-3 flex items-center justify-center text-xl bg-slate-900/80 border-cyan-400/40" title="Open Navigation & Hub">
+      ☰
+    </button>
+    <div class="panel flex-1 px-3 py-2 flex items-center gap-3">
+      <div class="w-12 h-12 rounded-xl flex flex-col items-center justify-center bg-cyan-400/15 border border-cyan-400/50 shadow-[0_0_14px_rgba(34,211,238,.4)]">
+        <span class="text-[10px] text-cyan-300 leading-none">LVL</span><span id="lvl" class="text-xl font-extrabold leading-none text-cyan-200">1</span>
+      </div>
+      <div class="flex-1 min-w-0">
+        <div class="flex justify-between text-xs text-slate-300 mb-1"><span id="userNameDisplay">Student</span><span id="xptxt">0 / 100 XP</span></div>
+        <div class="h-2.5 rounded-full bg-white/10 overflow-hidden"><div id="xpbar" class="h-full rounded-full bg-gradient-to-r from-cyan-400 to-violet-400 transition-all duration-500" style="width:0%"></div></div>
+        <div class="text-[11px] text-slate-400 mt-1">Total <span id="xptot">0</span> XP</div>
+      </div>
+    </div>
+    <div class="panel px-3 py-2 flex flex-col items-center justify-center min-w-[64px]" onclick="openModal('questModal')" style="cursor:pointer">
+      <span class="text-2xl leading-none">🔥</span><span id="streak" class="text-xl font-extrabold text-orange-300 leading-none mt-1">0</span><span class="text-[10px] text-slate-400">streak</span>
+    </div>
+    <div class="panel px-2 py-1 flex flex-col items-center justify-center" onclick="openModal('analyticsModal')" style="cursor:pointer">
+      <div class="relative w-14 h-14">
+        <svg viewBox="0 0 64 64" class="w-full h-full -rotate-90"><circle cx="32" cy="32" r="26" fill="none" stroke="rgba(255,255,255,.12)" stroke-width="6"/><circle id="gauge" cx="32" cy="32" r="26" fill="none" stroke="#4ade80" stroke-width="6" stroke-linecap="round" stroke-dasharray="163.36" stroke-dashoffset="163.36" style="transition:stroke-dashoffset .6s;filter:drop-shadow(0 0 4px #4ade80)"/></svg>
+        <span id="pct" class="absolute inset-0 flex items-center justify-center text-xs font-bold">0%</span>
+      </div>
+      <span class="text-[10px] text-slate-400">syllabus</span>
+    </div>
+  </div>
 
-    <div class="container">
-        <!-- Hero Section -->
-        <section class="hero" id="about">
-            <h1>CBSE Class 10 Board Prep Portal</h1>
-            <p>Welcome to <strong>BoardQuest</strong> — an interactive study suite built specifically for Class 10 CBSE students. Practice non-repeating quizzes, access high-yield Physics Wallah & NCERT revision notes, and track your study focus effortlessly.</p>
-            <a href="#app" class="btn">Start Studying Now</a>
-        </section>
+  <div class="flex flex-col gap-2 items-center">
+    <div class="panel px-3 py-1.5 flex flex-wrap justify-center gap-x-3 gap-y-1 text-xs">
+      <span onclick="openModal('libraryModal')" class="cursor-pointer hover:underline">📚 Library</span>
+      <span onclick="openModal('leaderboardModal')" class="cursor-pointer hover:underline">🏆 Leaderboard</span>
+      <span onclick="openModal('timerModal')" class="cursor-pointer hover:underline">⏱️ Timer (<span id="hudTimerDisplay">03:00:00</span>)</span>
+      <span onclick="toggleAiDrawer()" class="cursor-pointer text-cyan-300 font-bold hover:underline">✨ Gemini AI</span>
+    </div>
+    <div class="w-full max-w-xl grid grid-cols-[auto_1fr_1fr] gap-2 items-center">
+      <div id="dice" class="panel w-14 h-14 flex items-center justify-center text-2xl font-extrabold text-cyan-200">🎲</div>
+      <button id="roll" class="btn main">Roll Dice</button>
+      <button id="next" class="btn">Next Target</button>
+    </div>
+    <div class="w-full max-w-xl grid grid-cols-2 gap-2">
+      <button id="exp" class="btn text-xs !py-1.5">Export Progress</button>
+      <button id="imp" class="btn text-xs !py-1.5">Import Progress</button>
+      <input id="file" type="file" accept=".txt,.json,text/plain,application/json" class="hidden">
+    </div>
+  </div>
+</div>
 
-        <!-- Insights & Features Section -->
-        <section id="features">
-            <h2 class="section-title">✨ Key App Insights</h2>
-            <div class="grid">
-                <div class="card">
-                    <div class="card-icon">🧠</div>
-                    <h3>Smart Practice Engine</h3>
-                    <p>Dynamic non-repeating quizzes spanning Science, Mathematics, and Social Science to evaluate concepts effectively.</p>
-                </div>
-                <div class="card">
-                    <div class="card-icon">📚</div>
-                    <h3>Targeted Study Notes</h3>
-                    <p>Curated summaries and key formula sheets aligned with Class 10 NCERT curriculum and board guidelines.</p>
-                </div>
-                <div class="card">
-                    <div class="card-icon">⏱️</div>
-                    <h3>Focus Practice Timers</h3>
-                    <p>Integrated study timers and revision sessions engineered to maintain steady board preparation momentum.</p>
-                </div>
-            </div>
-        </section>
+<!-- MODAL 8: INITIAL LOGIN DIALOG -->
+<div id="loginModal" class="hidden fixed inset-0 z-50 items-center justify-center bg-black/85 backdrop-blur-md p-3">
+  <div class="panel w-full max-w-sm p-5 pop border-cyan-400/40 shadow-[0_0_30px_rgba(34,211,238,.3)]">
+    <div class="text-center mb-4">
+      <div class="text-4xl mb-1">🎓</div>
+      <h2 class="font-extrabold text-lg text-cyan-300">Welcome to BoardQuest</h2>
+      <p class="text-xs text-slate-400">Log in to save your progress & join the leaderboard</p>
+    </div>
+    <form onsubmit="handleLogin(event)" class="space-y-3 text-xs">
+      <div>
+        <label class="block text-slate-300 mb-1 font-semibold">Username</label>
+        <input id="loginUsername" type="text" required placeholder="Enter your username" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-slate-100 outline-none focus:border-cyan-400">
+      </div>
+      <div>
+        <label class="block text-slate-300 mb-1 font-semibold">Password</label>
+        <input id="loginPassword" type="password" required placeholder="Enter your password" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-slate-100 outline-none focus:border-cyan-400">
+      </div>
+      <button type="submit" class="btn main w-full !py-2.5 text-xs font-bold mt-2">Log In & Start Quest</button>
+    </form>
+    <div class="mt-4 pt-3 border-t border-slate-800 text-center space-y-2">
+      <p class="text-[11px] text-slate-400">Don't have an account yet?</p>
+      <div class="grid grid-cols-2 gap-2">
+        <button onclick="closeModal('loginModal');openModal('registerModal')" class="py-1.5 px-3 rounded-xl bg-purple-500/20 border border-purple-400/50 text-purple-200 font-bold text-xs hover:bg-purple-500/30 transition-colors">
+          Create Account
+        </button>
+        <button onclick="skipLoginGuest()" class="py-1.5 px-3 rounded-xl bg-slate-800 border border-slate-700 text-slate-300 font-bold text-xs hover:bg-slate-700 transition-colors">
+          Play as Guest
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
 
-        <!-- Live Embedded Interactive App -->
-        <section id="app">
-            <h2 class="section-title">🚀 BoardQuest Live Interface</h2>
-            <div class="app-workspace">
-                <div class="app-header">
-                    <div class="app-controls">
-                        <span class="dot dot-red"></span>
-                        <span class="dot dot-yellow"></span>
-                        <span class="dot dot-green"></span>
-                    </div>
-                    <span style="font-size: 0.85rem; color: var(--text-muted);">boardquest.internal.v1</span>
-                </div>
-                <div class="app-body">
-                    <div class="module-tabs">
-                        <button class="tab-btn active" onclick="switchTab('quiz')">Quick Quiz</button>
-                        <button class="tab-btn" onclick="switchTab('notes')">Revision Notes</button>
-                        <button class="tab-btn" onclick="switchTab('timer')">Focus Timer</button>
-                    </div>
+<!-- MODAL 9: REGISTER DIALOG -->
+<div id="registerModal" class="hidden fixed inset-0 z-50 items-center justify-center bg-black/85 backdrop-blur-md p-3">
+  <div class="panel w-full max-w-sm p-5 pop border-purple-400/40 shadow-[0_0_30px_rgba(168,85,247,.3)]">
+    <div class="text-center mb-4">
+      <div class="text-4xl mb-1">🌟</div>
+      <h2 class="font-extrabold text-lg text-purple-300">Create BoardQuest Profile</h2>
+      <p class="text-xs text-slate-400">Track stats, save progress & compete with friends</p>
+    </div>
+    <form onsubmit="handleRegister(event)" class="space-y-3 text-xs">
+      <div>
+        <label class="block text-slate-300 mb-1 font-semibold">Username</label>
+        <input id="regUsername" type="text" required placeholder="Choose a unique username" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-slate-100 outline-none focus:border-purple-400">
+      </div>
+      <div>
+        <label class="block text-slate-300 mb-1 font-semibold">Display Name</label>
+        <input id="regDisplayName" type="text" required placeholder="Your full name" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-slate-100 outline-none focus:border-purple-400">
+      </div>
+      <div>
+        <label class="block text-slate-300 mb-1 font-semibold">Password</label>
+        <input id="regPassword" type="password" required placeholder="Choose a password" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-slate-100 outline-none focus:border-purple-400">
+      </div>
+      <button type="submit" class="btn w-full !py-2.5 text-xs bg-purple-600 border-purple-400 text-white font-bold mt-2">Sign Up & Save Account</button>
+    </form>
+    <div class="mt-4 pt-3 border-t border-slate-800 text-center">
+      <p class="text-[11px] text-slate-400 mb-2">Already have an account?</p>
+      <button onclick="closeModal('registerModal');openModal('loginModal')" class="text-xs text-cyan-300 font-bold hover:underline">
+        Back to Login
+      </button>
+    </div>
+  </div>
+</div>
 
-                    <!-- Module 1: Quiz -->
-                    <div id="quiz-module" class="module-content active">
-                        <div class="quiz-box">
-                            <h4 id="question-text">Q: Which of the following metals reacts violently with cold water?</h4>
-                            <div style="margin-top: 1rem;">
-                                <button class="quiz-option" onclick="checkAnswer(false, this)">A) Iron (Fe)</button>
-                                <button class="quiz-option" onclick="checkAnswer(true, this)">B) Sodium (Na)</button>
-                                <button class="quiz-option" onclick="checkAnswer(false, this)">C) Copper (Cu)</button>
-                                <button class="quiz-option" onclick="checkAnswer(false, this)">D) Gold (Au)</button>
-                            </div>
-                            <p id="quiz-feedback" style="margin-top: 1rem; font-weight: bold;"></p>
-                        </div>
-                    </div>
-
-                    <!-- Module 2: Notes -->
-                    <div id="notes-module" class="module-content">
-                        <div class="quiz-box">
-                            <h4>📘 Science Quick Revision: Chemical Reactions</h4>
-                            <ul style="margin-top: 1rem; padding-left: 1.5rem; color: var(--text-muted); line-height: 1.8;">
-                                <li><strong>Combination Reaction:</strong> Two reactants combine to form a single product ($A + B \rightarrow AB$).</li>
-                                <li><strong>Decomposition Reaction:</strong> A single compound breaks down into simpler substances ($AB \rightarrow A + B$).</li>
-                                <li><strong>Displacement Reaction:</strong> A more reactive element displaces a less reactive element from its salt solution.</li>
-                            </ul>
-                        </div>
-                    </div>
-
-                    <!-- Module 3: Timer -->
-                    <div id="timer-module" class="module-content">
-                        <div class="quiz-box" style="text-align: center;">
-                            <h4>⏱️ Study Timer</h4>
-                            <div id="timer-display" style="font-size: 3rem; font-weight: bold; margin: 1rem 0; color: #818cf8;">25:00</div>
-                            <button class="btn" onclick="toggleTimer()" id="timer-btn">Start Session</button>
-                        </div>
-                    </div>
-
-                </div>
-            </div>
-        </section>
+<!-- SIDE NAVIGATION DRAWER -->
+<div id="sbOverlay" onclick="toggleSidebar()" class="hidden fixed inset-0 z-30 bg-black/60 backdrop-blur-sm"></div>
+<div id="sidebar" class="fixed top-0 left-0 bottom-0 w-80 max-w-[85vw] z-40 bg-slate-950/95 border-r border-slate-800 p-4 -translate-x-full overflow-y-auto flex flex-col justify-between">
+  <div>
+    <div class="flex items-center justify-between pb-3 mb-4 border-b border-slate-800">
+      <div class="flex items-center gap-2">
+        <span class="text-2xl">🎓</span>
+        <h2 class="font-extrabold text-base text-cyan-300">BoardQuest Master Hub</h2>
+      </div>
+      <button onclick="toggleSidebar()" class="text-slate-400 hover:text-white text-xl p-1">&times;</button>
     </div>
 
-    <!-- Footer -->
-    <footer>
-        <p>Built for Class 10 CBSE Board Preparation | Hosted on Vercel</p>
-    </footer>
+    <!-- Account & Login Box -->
+    <div class="panel p-3 mb-4 bg-slate-900/90">
+      <div id="accountLoggedOut" class="space-y-2">
+        <div class="text-xs text-slate-300">Sign in with Username & Password to save progress and rank on leaderboards.</div>
+        <div class="grid grid-cols-2 gap-2">
+          <button onclick="openModal('loginModal')" class="py-2 px-3 rounded-xl bg-cyan-400 text-slate-950 font-bold text-xs hover:bg-cyan-300 transition-colors">
+            Log In
+          </button>
+          <button onclick="openModal('registerModal')" class="py-2 px-3 rounded-xl bg-purple-500 text-white font-bold text-xs hover:bg-purple-400 transition-colors">
+            Sign Up
+          </button>
+        </div>
+      </div>
+      <div id="accountLoggedIn" class="hidden space-y-2">
+        <div class="flex items-center gap-2">
+          <img id="userAvatar" class="w-8 h-8 rounded-full border border-cyan-400" src="https://placehold.co/100x100/22d3ee/05060f?text=U" alt="User">
+          <div class="min-w-0 flex-1">
+            <div id="accountName" class="font-bold text-xs text-white truncate">User Name</div>
+            <div id="accountEmail" class="text-[10px] text-slate-400 truncate">@username</div>
+          </div>
+        </div>
+        <button onclick="logoutUser()" class="w-full py-1 text-[10px] text-red-400 hover:text-red-300 border border-red-500/30 rounded-lg">Sign Out</button>
+      </div>
+    </div>
 
-    <!-- JavaScript Application Logic -->
-    <script>
-        function switchTab(tabName) {
-            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
-            document.querySelectorAll('.module-content').forEach(mod => mod.classList.remove('active'));
+    <!-- Quick Navigation Sub-tabs -->
+    <div class="space-y-3 text-xs">
+      <div class="panel p-3">
+        <div class="font-bold text-cyan-300 mb-2 flex items-center gap-1.5 text-xs">
+          <span>⚡</span> Chapter Direct Quiz
+        </div>
+        <select id="sbSubjSelect" onchange="renderSbChapters()" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-1.5 text-slate-200 mb-2 outline-none">
+          <option value="math">Mathematics</option>
+          <option value="sci">Science</option>
+          <option value="sst">Social Science</option>
+          <option value="eng">English</option>
+          <option value="hindi">Hindi (स्पर्श / संचयन)</option>
+          <option value="it">Information Tech (IT 402)</option>
+        </select>
+        <select id="sbChapSelect" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-1.5 text-slate-200 mb-2 outline-none"></select>
+        <button onclick="launchSbQuiz()" class="btn main w-full !py-1.5 text-xs">Launch Quiz</button>
+      </div>
 
-            if (tabName === 'quiz') {
-                document.querySelectorAll('.tab-btn')[0].classList.add('active');
-                document.getElementById('quiz-module').classList.add('active');
-            } else if (tabName === 'notes') {
-                document.querySelectorAll('.tab-btn')[1].classList.add('active');
-                document.getElementById('notes-module').classList.add('active');
-            } else if (tabName === 'timer') {
-                document.querySelectorAll('.tab-btn')[2].classList.add('active');
-                document.getElementById('timer-module').classList.add('active');
-            }
-        }
+      <div class="panel p-3">
+        <div class="font-bold text-purple-300 mb-1 flex items-center gap-1.5 text-xs">
+          <span>📚</span> Deep Notes & Glossary
+        </div>
+        <button onclick="launchSbNotes()" class="btn w-full !py-1.5 text-xs border-purple-500/40 text-purple-200 hover:bg-purple-900/30">Open Selected Chapter Notes</button>
+      </div>
 
-        function checkAnswer(isCorrect, element) {
-            const feedback = document.getElementById('quiz-feedback');
-            if (isCorrect) {
-                feedback.textContent = '✅ Correct! Sodium reacts vigorously with cold water to form Sodium Hydroxide and Hydrogen gas.';
-                feedback.style.color = '#10b981';
-            } else {
-                feedback.textContent = '❌ Incorrect. Try again!';
-                feedback.style.color = '#ef4444';
-            }
-        }
+      <div class="panel p-3">
+        <div class="font-bold text-amber-300 mb-1.5 flex items-center gap-1.5 text-xs">
+          <span>📊</span> Diagnostic Performance
+        </div>
+        <button onclick="openModal('analyticsModal')" class="btn w-full !py-1.5 text-xs border-amber-500/40 text-amber-200 hover:bg-amber-900/30">View Weak Areas & Help</button>
+      </div>
+      
+      <button onclick="startTutorial()" class="w-full py-2 px-3 rounded-xl bg-slate-800 border border-slate-700 text-xs text-cyan-300 font-semibold hover:bg-slate-700">
+        ❓ Start Guided App Tutorial
+      </button>
+    </div>
+  </div>
 
-        let timerInterval = null;
-        let timeLeft = 25 * 60;
+  <div class="pt-3 border-t border-slate-800 text-[10px] text-slate-500 text-center">
+    BoardQuest CBSE 10th Prep • Class 10 Board Companion
+  </div>
+</div>
 
-        function toggleTimer() {
-            const btn = document.getElementById('timer-btn');
-            if (timerInterval) {
-                clearInterval(timerInterval);
-                timerInterval = null;
-                btn.textContent = 'Start Session';
-            } else {
-                btn.textContent = 'Pause Session';
-                timerInterval = setInterval(() => {
-                    timeLeft--;
-                    const minutes = Math.floor(timeLeft / 60);
-                    const seconds = timeLeft % 60;
-                    document.getElementById('timer-display').textContent = 
-                        `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
-                    
-                    if (timeLeft <= 0) {
-                        clearInterval(timerInterval);
-                        alert('Time is up! Great focus session.');
-                    }
-                }, 1000);
-            }
-        }
-    </script>
+<!-- GEMINI PERSONAL AI TEACHER DRAWER -->
+<div id="aiDrawer" class="fixed top-0 right-0 bottom-0 w-88 max-w-[90vw] z-40 bg-slate-950/95 border-l border-slate-800 p-4 translate-x-full flex flex-col justify-between">
+  <div class="flex flex-col h-full">
+    <div class="flex items-center justify-between pb-3 border-b border-slate-800">
+      <div class="flex items-center gap-2">
+        <span class="text-xl">✨</span>
+        <div>
+          <h3 class="font-extrabold text-sm text-cyan-300">Gemini AI Personal Teacher</h3>
+          <p class="text-[10px] text-slate-400">Class 10 CBSE Assistant</p>
+        </div>
+      </div>
+      <button onclick="toggleAiDrawer()" class="text-slate-400 hover:text-white text-xl p-1">&times;</button>
+    </div>
+
+    <!-- AI Chat Box -->
+    <div id="aiChatBox" class="flex-1 overflow-y-auto py-3 space-y-2 text-xs">
+      <div class="p-2.5 rounded-xl bg-cyan-950/40 border border-cyan-500/30 text-slate-200">
+        👋 Hello! I am your <b>Gemini Board Tutor</b>. I can explain complex NCERT concepts, solve doubts, give practice questions, or create study schedules!
+      </div>
+    </div>
+
+    <!-- Quick Suggestion Buttons -->
+    <div class="py-2 flex flex-wrap gap-1">
+      <button onclick="sendAiPrompt('Explain the current chapter in simple terms with examples.')" class="text-[10px] bg-white/5 hover:bg-white/10 px-2 py-1 rounded border border-white/10 text-cyan-200">💡 Explain Chapter</button>
+      <button onclick="sendAiPrompt('Give me 2 higher competency board questions with answers for this chapter.')" class="text-[10px] bg-white/5 hover:bg-white/10 px-2 py-1 rounded border border-white/10 text-purple-200">🎯 High-Competency Challenge</button>
+      <button onclick="sendAiPrompt('Create a 7-day revision schedule for my pending CBSE chapters.')" class="text-[10px] bg-white/5 hover:bg-white/10 px-2 py-1 rounded border border-white/10 text-amber-200">📅 7-Day Timetable</button>
+    </div>
+
+    <!-- AI Input -->
+    <div class="flex gap-1.5 pt-2 border-t border-slate-800">
+      <input id="aiInput" type="text" placeholder="Ask your personal teacher..." class="flex-1 bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs text-slate-100 outline-none focus:border-cyan-400" onkeydown="if(event.key==='Enter') sendAiMessage()">
+      <button onclick="sendAiMessage()" class="btn main !py-1.5 !px-3 text-xs">Send</button>
+    </div>
+  </div>
+</div>
+
+<!-- TOAST NOTIFICATION -->
+<div id="toast" class="fixed left-1/2 top-20 -translate-x-1/2 z-50 px-4 py-2 rounded-full bg-black/85 border border-cyan-400/60 text-xs opacity-0 pointer-events-none text-center max-w-[90vw] shadow-[0_0_20px_rgba(34,211,238,.3)]"></div>
+
+<!-- MODAL 1: MAIN CHAPTER CARD (Quiz, Deep Notes, Practice Paper) -->
+<div id="modal" class="hidden fixed inset-0 z-40 items-center justify-center bg-black/65 backdrop-blur-sm p-3">
+  <div class="scene w-full max-w-md pop" style="height:min(650px,92vh)">
+    <div id="card" class="card3d relative w-full h-full">
+      <div id="front" class="face flex flex-col items-center justify-center text-center p-6 cursor-pointer">
+        <div id="ficon" class="text-7xl mb-4" style="color:var(--c);text-shadow:0 0 30px var(--c)"></div>
+        <div id="fsub" class="text-2xl font-extrabold" style="color:var(--c)"></div>
+        <div class="text-slate-400 text-xs mt-2">Tap or flip card to inspect chapter</div>
+      </div>
+      
+      <div class="face back p-4 flex flex-col justify-between">
+        <div>
+          <div class="flex items-center justify-between mb-1">
+            <span id="btag" class="text-xs font-bold px-2 py-0.5 rounded-full border" style="color:var(--c);border-color:var(--c)"></span>
+            <button id="close" class="text-slate-400 text-2xl leading-none px-2">&times;</button>
+          </div>
+          <h2 id="btitle" class="text-lg font-extrabold mb-2" style="color:var(--c)"></h2>
+
+          <div class="flex gap-1.5 mb-2 overflow-x-auto pb-1">
+            <button id="tabQuiz" class="tab-btn active" onclick="switchCardTab('quiz')">Interactive Quiz</button>
+            <button id="tabNotes" class="tab-btn" onclick="switchCardTab('notes')">Deep Notes & PW</button>
+            <button id="tabGlossary" class="tab-btn" onclick="switchCardTab('glossary')">Key Words</button>
+            <button id="tabPaper" class="tab-btn" onclick="switchCardTab('paper')">Practice Paper</button>
+          </div>
+
+          <!-- Section 1: Non-repeating Quiz -->
+          <div id="secQuiz">
+            <div id="marks" class="grid grid-cols-5 gap-1 mb-2"></div>
+            <button id="quizBtn" class="btn main w-full !py-2 mb-2 text-xs flex items-center justify-center gap-2">
+              <span>⚡ Start Non-Repeating Quiz (+10 XP)</span>
+            </button>
+            <div id="quiz" class="mb-2"></div>
+
+            <div id="analysisBox" class="hidden p-2.5 rounded-xl bg-red-950/40 border border-red-500/30 mb-2 text-xs">
+              <div class="flex items-center justify-between text-red-300 font-bold mb-1">
+                <span>🔍 Deep Diagnostic & Focus Area</span>
+              </div>
+              <div id="analysisContent" class="text-slate-300 space-y-1 text-[11px]"></div>
+              <div class="mt-2 pt-1.5 border-t border-white/10 flex gap-2">
+                <button onclick="askAiAboutWrongQ()" class="flex-1 py-1 rounded bg-sky-500/20 hover:bg-sky-500/30 border border-sky-400/40 text-[10px] font-semibold text-sky-200">
+                  ✨ Ask Gemini AI Teacher
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Section 2: Deep NCERT & PW Notes -->
+          <div id="secNotes" class="hidden space-y-2 mb-2">
+            <div class="p-2.5 rounded-xl bg-white/5 border border-white/10 text-xs max-h-52 overflow-y-auto pr-1">
+              <div class="font-bold text-cyan-300 mb-1">📚 In-Depth Explanation & PW Concepts</div>
+              <div id="notesContent" class="text-slate-300 leading-relaxed text-[11px] space-y-2"></div>
+            </div>
+          </div>
+
+          <!-- Section 3: Dedicated Key Words Area -->
+          <div id="secGlossary" class="hidden space-y-2 mb-2">
+            <div class="p-2.5 rounded-xl bg-white/5 border border-white/10 text-xs max-h-52 overflow-y-auto pr-1">
+              <div class="font-bold text-amber-300 mb-1">🔑 Scoring Key Words & Terminology</div>
+              <div id="glossaryContent" class="text-slate-300 leading-relaxed text-[11px] space-y-1.5"></div>
+            </div>
+          </div>
+
+          <!-- Section 4: Sample Practice Paper -->
+          <div id="secPaper" class="hidden space-y-2 mb-2">
+            <div class="p-2.5 rounded-xl bg-white/5 border border-white/10 text-xs max-h-52 overflow-y-auto pr-1">
+              <div class="flex justify-between items-center mb-1">
+                <span class="font-bold text-purple-300">📄 CBSE Class 10 Mock Paper</span>
+                <button onclick="startPracticeTimer()" class="text-[10px] bg-amber-500/30 text-amber-200 px-2 py-0.5 rounded border border-amber-400/40">⏱️ Start Timer</button>
+              </div>
+              <div id="paperContent" class="text-slate-300 text-[11px] space-y-1.5"></div>
+            </div>
+          </div>
+        </div>
+
+        <div>
+          <label class="flex items-center justify-between p-2 rounded-xl bg-white/5 border border-white/10 cursor-pointer">
+            <span class="font-semibold text-xs">Syllabus Completed (+50 XP)</span>
+            <input id="done" type="checkbox" class="sr-only peer">
+            <span class="w-10 h-5 rounded-full bg-slate-700 peer-checked:bg-[var(--c)] relative transition-colors after:content-[''] after:absolute after:top-0.5 after:left-0.5 after:w-4 after:h-4 after:bg-white after:rounded-full after:transition-transform peer-checked:after:translate-x-5"></span>
+          </label>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL 2: 3-COLUMN BOOK PDF & STUDY LIBRARY -->
+<div id="libraryModal" class="hidden fixed inset-0 z-50 items-center justify-center bg-black/75 backdrop-blur-sm p-3">
+  <div class="panel w-full max-w-4xl p-4 max-h-[90vh] flex flex-col justify-between pop">
+    <div class="flex justify-between items-center pb-2 border-b border-slate-700">
+      <div class="flex items-center gap-2">
+        <span class="text-xl">📚</span>
+        <h2 class="font-bold text-base text-purple-300">Class 10 CBSE Study Library & PDFs</h2>
+      </div>
+      <button onclick="closeModal('libraryModal')" class="text-slate-400 text-xl">&times;</button>
+    </div>
+
+    <!-- 3 Separated Columns -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-3 my-3 overflow-y-auto max-h-[68vh] pr-1 text-xs">
+      <div class="p-3 rounded-xl bg-slate-900/90 border border-slate-800 space-y-2">
+        <div class="font-bold text-cyan-300 border-b border-slate-800 pb-1 flex items-center gap-1">
+          <span>📖</span> Column 1: NCERT Textbooks
+        </div>
+        <div class="space-y-1.5 text-[11px]">
+          <a href="https://ncert.nic.in/textbook.php" target="_blank" class="block p-2 rounded bg-white/5 hover:bg-cyan-500/20 border border-white/10 text-slate-200">📄 NCERT Mathematics Class 10 PDF</a>
+          <a href="https://ncert.nic.in/textbook.php" target="_blank" class="block p-2 rounded bg-white/5 hover:bg-cyan-500/20 border border-white/10 text-slate-200">📄 NCERT Science Class 10 PDF</a>
+          <a href="https://ncert.nic.in/textbook.php" target="_blank" class="block p-2 rounded bg-white/5 hover:bg-cyan-500/20 border border-white/10 text-slate-200">📄 NCERT Social Science All Parts</a>
+          <a href="https://ncert.nic.in/textbook.php" target="_blank" class="block p-2 rounded bg-white/5 hover:bg-cyan-500/20 border border-white/10 text-slate-200">📄 NCERT English First Flight & Footprints</a>
+          <a href="https://ncert.nic.in/textbook.php" target="_blank" class="block p-2 rounded bg-white/5 hover:bg-cyan-500/20 border border-white/10 text-slate-200">📄 Sparsh & Sanchayan Hindi B PDF</a>
+          <a href="https://cbseacademic.nic.in/" target="_blank" class="block p-2 rounded bg-white/5 hover:bg-cyan-500/20 border border-white/10 text-slate-200">📄 NCERT Exemplar Problems & Solutions</a>
+        </div>
+      </div>
+
+      <div class="p-3 rounded-xl bg-slate-900/90 border border-slate-800 space-y-2">
+        <div class="font-bold text-amber-300 border-b border-slate-800 pb-1 flex items-center gap-1">
+          <span>📄</span> Column 2: CBSE Sample Papers
+        </div>
+        <div class="space-y-1.5 text-[11px]">
+          <a href="https://cbseacademic.nic.in/SQP_CLASSX_2023_24.html" target="_blank" class="block p-2 rounded bg-white/5 hover:bg-amber-500/20 border border-white/10 text-slate-200">📝 CBSE Official Maths SQP + MS</a>
+          <a href="https://cbseacademic.nic.in/SQP_CLASSX_2023_24.html" target="_blank" class="block p-2 rounded bg-white/5 hover:bg-amber-500/20 border border-white/10 text-slate-200">📝 CBSE Official Science SQP + MS</a>
+          <a href="https://cbseacademic.nic.in/SQP_CLASSX_2023_24.html" target="_blank" class="block p-2 rounded bg-white/5 hover:bg-amber-500/20 border border-white/10 text-slate-200">📝 CBSE Official SST SQP + MS</a>
+          <a href="https://cbseacademic.nic.in/SQP_CLASSX_2023_24.html" target="_blank" class="block p-2 rounded bg-white/5 hover:bg-amber-500/20 border border-white/10 text-slate-200">📝 CBSE Official English SQP + MS</a>
+          <a href="https://cbseacademic.nic.in/SQP_CLASSX_2023_24.html" target="_blank" class="block p-2 rounded bg-white/5 hover:bg-amber-500/20 border border-white/10 text-slate-200">📝 CBSE Official Hindi B SQP + MS</a>
+          <a href="https://cbseacademic.nic.in/SQP_CLASSX_2023_24.html" target="_blank" class="block p-2 rounded bg-white/5 hover:bg-amber-500/20 border border-white/10 text-slate-200">📝 IT 402 Sample Papers & Blueprint</a>
+        </div>
+      </div>
+
+      <div class="p-3 rounded-xl bg-slate-900/90 border border-slate-800 space-y-2">
+        <div class="font-bold text-emerald-300 border-b border-slate-800 pb-1 flex items-center gap-1">
+          <span>🏆</span> Column 3: Topper Solutions & Maps
+        </div>
+        <div class="space-y-1.5 text-[11px]">
+          <a href="https://cbseacademic.nic.in/" target="_blank" class="block p-2 rounded bg-white/5 hover:bg-emerald-500/20 border border-white/10 text-slate-200">🌟 CBSE Topper Handwritten Answer Copies</a>
+          <a href="#" onclick="toast('Opening Physics Wallah Formula Cheat Sheet...');return false;" class="block p-2 rounded bg-white/5 hover:bg-emerald-500/20 border border-white/10 text-slate-200">⚡ PW All Physics & Maths Formula Sheet</a>
+          <a href="#" onclick="toast('Opening SST Mapwork Master Sheet...');return false;" class="block p-2 rounded bg-white/5 hover:bg-emerald-500/20 border border-white/10 text-slate-200">🗺️ Class 10 SST Complete Mapwork PDF</a>
+          <a href="#" onclick="toast('Opening Grammar Quick Revision Chart...');return false;" class="block p-2 rounded bg-white/5 hover:bg-emerald-500/20 border border-white/10 text-slate-200">✍️ English & Hindi Grammar Rules PDF</a>
+        </div>
+      </div>
+    </div>
+
+    <button onclick="closeModal('libraryModal')" class="btn main w-full !py-2 text-xs">Close Library</button>
+  </div>
+</div>
+
+<!-- MODAL 3: INBUILT PRACTICE TIMER WIDGET -->
+<div id="timerModal" class="hidden fixed inset-0 z-50 items-center justify-center bg-black/75 backdrop-blur-sm p-3">
+  <div class="panel w-full max-w-sm p-4 pop text-center">
+    <div class="flex justify-between items-center pb-2 border-b border-slate-700 mb-3">
+      <div class="flex items-center gap-2">
+        <span class="text-xl">⏱️</span>
+        <h2 class="font-bold text-base text-amber-300">Practice Exam Timer</h2>
+      </div>
+      <button onclick="closeModal('timerModal')" class="text-slate-400 text-xl">&times;</button>
+    </div>
+
+    <div class="flex justify-center items-center gap-2 mb-3">
+      <label class="text-xs text-slate-300 font-semibold">Timer Status:</label>
+      <button id="timerToggleBtn" onclick="toggleTimerActive()" class="px-3 py-1 rounded-full bg-emerald-500/20 border border-emerald-400 text-emerald-300 font-bold text-xs">ON</button>
+    </div>
+
+    <div id="timerDisplay" class="text-4xl font-extrabold text-cyan-300 my-4 tracking-wider font-mono">03:00:00</div>
+
+    <div class="grid grid-cols-2 gap-1.5 mb-4 text-xs">
+      <button onclick="setTimerPreset(10800)" class="py-1.5 rounded bg-white/5 hover:bg-white/10 border border-white/10">3 Hr (Board Paper)</button>
+      <button onclick="setTimerPreset(3600)" class="py-1.5 rounded bg-white/5 hover:bg-white/10 border border-white/10">1 Hr (Chapter Test)</button>
+      <button onclick="setTimerPreset(1500)" class="py-1.5 rounded bg-white/5 hover:bg-white/10 border border-white/10">25 Min (Pomodoro)</button>
+      <button onclick="setTimerPreset(0)" class="py-1.5 rounded bg-white/5 hover:bg-white/10 border border-white/10">Stopwatch Mode</button>
+    </div>
+
+    <div class="flex gap-2">
+      <button id="timerRunBtn" onclick="toggleTimerRunning()" class="btn main flex-1 !py-2 text-xs">Start Timer</button>
+      <button onclick="resetTimer()" class="btn flex-1 !py-2 text-xs border-slate-600">Reset</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL 4: MULTIPLAYER FRIENDS LEADERBOARD -->
+<div id="leaderboardModal" class="hidden fixed inset-0 z-50 items-center justify-center bg-black/75 backdrop-blur-sm p-3">
+  <div class="panel w-full max-w-md p-4 max-h-[85vh] flex flex-col justify-between pop">
+    <div class="flex justify-between items-center pb-2 border-b border-slate-700">
+      <div class="flex items-center gap-2">
+        <span class="text-xl">🏆</span>
+        <h2 class="font-bold text-base text-amber-300">Friends Leaderboard</h2>
+      </div>
+      <button onclick="closeModal('leaderboardModal')" class="text-slate-400 text-xl">&times;</button>
+    </div>
+
+    <div class="text-[11px] text-slate-400 my-2 px-1">
+      <span>🔒 Only verified, signed-in Google accounts appear on this leaderboard.</span>
+    </div>
+
+    <div id="leaderboardList" class="my-2 space-y-1.5 overflow-y-auto max-h-[50vh] pr-1 text-xs"></div>
+
+    <button onclick="closeModal('leaderboardModal')" class="btn main w-full !py-2 text-xs">Close Leaderboard</button>
+  </div>
+</div>
+
+<!-- MODAL 5: DIAGNOSTIC & ACCOUNT ANALYTICS -->
+<div id="analyticsModal" class="hidden fixed inset-0 z-50 items-center justify-center bg-black/75 backdrop-blur-sm p-3">
+  <div class="panel w-full max-w-md p-4 max-h-[88vh] flex flex-col justify-between pop">
+    <div class="flex justify-between items-center pb-2 border-b border-slate-700">
+      <div class="flex items-center gap-2">
+        <span class="text-xl">📊</span>
+        <h2 class="font-bold text-base text-cyan-300">Diagnostic & Mastery Analytics</h2>
+      </div>
+      <button onclick="closeModal('analyticsModal')" class="text-slate-400 text-xl">&times;</button>
+    </div>
+
+    <div class="my-3 space-y-3 overflow-y-auto max-h-[60vh] pr-1 text-xs">
+      <div class="p-3 rounded-xl bg-slate-900 border border-slate-800">
+        <div class="font-bold text-slate-200 mb-2">Subject Completion Breakdown</div>
+        <div id="subjectBreakdown" class="space-y-1.5"></div>
+      </div>
+
+      <div class="p-3 rounded-xl bg-red-950/30 border border-red-500/30">
+        <div class="font-bold text-red-300 mb-1">Identified Focus Weak Areas</div>
+        <div id="weakAreasList" class="text-slate-300 text-[11px] leading-relaxed">
+          No weak concepts flagged yet. Take chapter quizzes to auto-detect focus areas!
+        </div>
+      </div>
+    </div>
+
+    <button onclick="closeModal('analyticsModal')" class="btn main w-full !py-2 text-xs">Close Analytics</button>
+  </div>
+</div>
+
+<!-- MODAL 6: DAILY QUESTS -->
+<div id="questModal" class="hidden fixed inset-0 z-50 items-center justify-center bg-black/75 backdrop-blur-sm p-3">
+  <div class="panel w-full max-w-sm p-4 pop">
+    <div class="flex justify-between items-center pb-2 border-b border-slate-700 mb-3">
+      <div class="flex items-center gap-2">
+        <span class="text-xl">🎯</span>
+        <h2 class="font-bold text-base text-emerald-300">Daily Quests & Rewards</h2>
+      </div>
+      <button onclick="closeModal('questModal')" class="text-slate-400 text-xl">&times;</button>
+    </div>
+    <div class="space-y-2 text-xs">
+      <div class="p-2.5 rounded-xl bg-slate-900 border border-slate-800 flex justify-between items-center">
+        <div>
+          <div class="font-bold text-slate-200">Daily Navigator</div>
+          <div class="text-[10px] text-slate-400">Roll dice 3 times today</div>
+        </div>
+        <span id="q1Status" class="text-cyan-300 font-bold">0/3</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL 7: GUIDED APP TUTORIAL -->
+<div id="tutorialModal" class="hidden fixed inset-0 z-50 items-center justify-center bg-black/80 backdrop-blur-sm p-3">
+  <div class="panel w-full max-w-sm p-4 pop text-center">
+    <div id="tutStepIcon" class="text-4xl mb-2">🎲</div>
+    <h3 id="tutStepTitle" class="font-bold text-base text-cyan-300 mb-1">Welcome to BoardQuest!</h3>
+    <p id="tutStepDesc" class="text-xs text-slate-300 leading-relaxed mb-4">Your gamified 3D companion for CBSE Class 10 Board preparation.</p>
+
+    <div class="flex gap-2">
+      <button id="tutPrevBtn" onclick="prevTutStep()" class="btn flex-1 !py-1.5 text-xs border-slate-700">Back</button>
+      <button id="tutNextBtn" onclick="nextTutStep()" class="btn main flex-1 !py-1.5 text-xs">Next</button>
+    </div>
+  </div>
+</div>
+
+<script>
+(function(){
+'use strict';
+var $=function(id){return document.getElementById(id)};
+var clamp=function(v,a,b){return Math.max(a,Math.min(b,v))};
+
+window.openModal = function(id) {
+  if($(id)) {
+    $(id).classList.remove('hidden');
+    $(id).classList.add('flex');
+    if(id === 'analyticsModal') updateAnalyticsUI();
+  }
+};
+window.closeModal = function(id) {
+  if($(id)) {
+    $(id).classList.add('hidden');
+    $(id).classList.remove('flex');
+  }
+};
+
+var SUBJ={
+  math:{n:'Mathematics',c:'#22d3ee',i:'∑'},
+  sci:{n:'Science',c:'#4ade80',i:'⚛'},
+  sst:{n:'Social Science',c:'#c084fc',i:'🌍'},
+  eng:{n:'English',c:'#facc15',i:'✎'},
+  hindi:{n:'Hindi (हिंदी B)',c:'#fb923c',i:'क'},
+  it:{n:'IT (Code 402)',c:'#f472b6',i:'💻'}
+};
+
+var CH={
+  math:['Real Numbers','Polynomials','Pair of Linear Equations in Two Variables','Quadratic Equations','Arithmetic Progressions','Triangles','Coordinate Geometry','Introduction to Trigonometry','Some Applications of Trigonometry','Circles','Areas Related to Circles','Surface Areas and Volumes','Statistics','Probability'],
+  sci:['Chemical Reactions and Equations','Acids, Bases and Salts','Metals and Non-metals','Carbon and its Compounds','Life Processes','Control and Coordination','How do Organisms Reproduce?','Heredity and Evolution','Light: Reflection and Refraction','The Human Eye and the Colorful World','Electricity','Magnetic Effects of Electric Current','Our Environment'],
+  sst:['Hist: The Rise of Nationalism in Europe','Hist: Nationalism in India','Hist: The Making of a Global World','Hist: Print Culture and Modern World','Geo: Resources and Development','Geo: Forest and Wildlife Resources','Geo: Water Resources','Geo: Agriculture','Geo: Minerals and Energy Resources','Geo: Manufacturing Industries','Pol: Power Sharing','Pol: Federalism','Pol: Gender, Religion and Caste','Pol: Political Parties','Pol: Outcomes of Democracy','Eco: Development','Eco: Sectors of the Indian Economy','Eco: Money and Credit','Eco: Globalisation and Indian Economy'],
+  eng:['A Letter to God','Nelson Mandela: Long Walk to Freedom','Two Stories about Flying','From the Diary of Anne Frank','Glimpses of India','Mijbil the Otter','Madam Rides the Bus','The Sermon at Benares','The Proposal','Poems: Dust of Snow & Fire and Ice','Poems: A Tiger in the Zoo','Poems: Amanda!','Footprints: A Triumph of Surgery','Footprints: The Thief\'s Story','Footprints: Footprints without Feet','Footprints: The Making of a Scientist','Footprints: The Necklace','Footprints: Bholi'],
+  hindi:['साखी (कबीर)','पद (मीरा)','मनुष्यता (मैथिलीशरण गुप्त)','पर्वत प्रदेश में पावस','कर चले हम फ़िदा','बड़े भाई साहब (प्रेमचंद)','डायरी का एक पन्ना','तताँरा-वामीरो कथा','तीसरी कसम के शिल्पकार शैलेंद्र','अब कहाँ दूसरे के दुख से दुखी होने वाले','कारतूस (हबीब तनवीर)','हरिहर काका (मिथिलेश्वर)','सपनों के-से दिन','टोपी शुक्ला','व्याकरण: पदबंध','व्याकरण: वाक्य रूपांतरण','व्याकरण: समास','व्याकरण: मुहावरे'],
+  it:['Communication Skills - II','Self-Management Skills - II','ICT Skills - II','Entrepreneurial Skills - II','Green Skills - II','Digital Documentation (Advanced)','Electronic Spreadsheet (Advanced)','Database Management System (DBMS)','Web Applications and Security']
+};
+
+var NOTES_DATA={
+  math:{
+    pw:'• Fundamental Theorem of Arithmetic: Every composite number = product of primes uniquely.<br>• Discriminant D = b² - 4ac: D > 0 (2 distinct real roots), D = 0 (2 equal real roots), D < 0 (no real roots).<br>• AP nth term: a_n = a + (n-1)d; Sum S_n = n/2 [2a + (n-1)d].<br>• Trigonometric Identities: sin²θ + cos²θ = 1; 1 + tan²θ = sec²θ; 1 + cot²θ = cosec²θ.',
+    glossary:'• Composite Number: Natural number with more than two distinct factors.<br>• Discriminant: Value calculating root nature of quadratic polynomial.<br>• Common Difference (d): Constant difference between consecutive AP terms.',
+    steps:['Solve NCERT Exemplar standard problems twice.','Practice 10 Discriminant & Factorisation numericals.']
+  },
+  sci:{
+    pw:'• Redox Reactions: Oxidation = Loss of e⁻ / Gain of O₂; Reduction = Gain of e⁻.<br>• pH Scale: Acids pH < 7, Neutral pH = 7, Bases pH > 7.<br>• Double Circulation: Blood passes through heart twice per circuit.<br>• Ohm\'s Law V = IR; Heating Effect H = I²Rt; Snell\'s Law sin i / sin r = μ.',
+    glossary:'• Combination Reaction: Two reactants unite to form single product.<br>• Nephron: Structural and functional filtration unit of kidney.<br>• Refractive Index: Ratio of speed of light in vacuum to medium.',
+    steps:['Draw labeled diagrams of Heart, Nephron, and Lens ray diagrams.','Master balancing chemical equations with state symbols.']
+  },
+  sst:{
+    pw:'• Nationalism in India: Non-Cooperation Movement (1920) & Civil Disobedience (1930 Dandi March).<br>• Power Sharing: Belgian Model (Equality) vs Sri Lanka Majoritarianism.<br>• Development: Per Capita Income = Total National Income / Total Population.',
+    glossary:'• Majoritarianism: Belief that majority community should rule.<br>• Gross Domestic Product (GDP): Total value of final goods/services in 1 year.',
+    steps:['Create timeline charts for Indian Freedom Movement (1915-1947).','Practice map pointing for soil types, dams, and nationalist centers.']
+  },
+  eng:{
+    pw:'• Letter to God: Lencho\'s unshakable faith vs irony of post office employees helping him.<br>• Nelson Mandela: Courage is triumph over fear, not absence of fear.',
+    glossary:'• Irony: Event that seems deliberately contrary to expectation.<br>• Apartheid: System of institutionalized racial segregation.',
+    steps:['Write 80-word character sketches for main characters.','Revise Reported Speech and Modals rules.']
+  },
+  hindi:{
+    pw:'• साखी (कबीर): मीठी वाणी बोलना, अहंकार का त्याग.<br>• बड़े भाई साहब: व्यावहारिक अनुभव बनाम किताबी ज्ञान.',
+    glossary:'• पदबंध: मुख्य पद के आश्रित पदों का समूह.<br>• तत्पुरुष समास: उत्तरपद प्रधान तथा कारक चिह्न का लोप.',
+    steps:['पदबंध एवं समास विग्रह के 20 उदाहरणों का अभ्यास करें।']
+  },
+  it:{
+    pw:'• Digital Doc: Styles (Paragraph, Character), Mail Merge.<br>• Spreadsheet: Goal Seek, Solver, Consolidate Data.<br>• DBMS: Primary Key (Unique & Non-null), Foreign Key, SQL SELECT query.',
+    glossary:'• Primary Key: Attribute uniquely identifying record in table.<br>• Mail Merge: Combining main document with dynamic data source.',
+    steps:['Practice SQL SELECT, WHERE, ORDER BY queries.']
+  }
+};
+
+var seenQuestions = {};
+
+function generateDynamicQuestion(subjKey, chapterName, chapIdx) {
+  var randInt = function(min, max){ return Math.floor(Math.random()*(max-min+1))+min; };
+  var randChoice = function(arr){ return arr[Math.floor(Math.random()*arr.length)]; };
+
+  var key = subjKey + '_' + chapIdx;
+  if (!seenQuestions[key]) seenQuestions[key] = new Set();
+
+  var candidatePool = [
+    function() {
+      var a = randInt(2, 6), b = randInt(2, 8), c = randInt(1, 8);
+      var D = (b*b) - (4*a*c);
+      var res = D > 0 ? "Two distinct real roots" : (D === 0 ? "Two equal real roots" : "No real roots");
+      return {
+        id: 'q_' + key + '_' + a + '_' + b + '_' + c,
+        q: "For equation " + a + "x² + " + b + "x + " + c + " = 0 (Discriminant D = " + D + "), state the nature of roots:",
+        o: ["Two distinct real roots", "Two equal real roots", "No real roots", "Infinite roots"],
+        a: res === "Two distinct real roots" ? 0 : (res === "Two equal real roots" ? 1 : 2),
+        concept: "Discriminant Formula (D = b² - 4ac)",
+        focus: "Evaluate sign of D: D>0 (2 real), D=0 (equal), D<0 (no real)."
+      };
+    },
+    function() {
+      var r1 = randChoice([2, 4, 6]), r2 = randChoice([3, 6, 9]);
+      var eq = r1 + r2;
+      return {
+        id: 'q_' + key + '_res_' + r1 + '_' + r2,
+        q: "In " + chapterName + ", two resistors (" + r1 + "Ω and " + r2 + "Ω) are in series. Total resistance is:",
+        o: [eq + " Ω", ((r1*r2)/(r1+r2)).toFixed(1) + " Ω", (eq + 4) + " Ω", (r1*r2) + " Ω"],
+        a: 0,
+        concept: "Series Resistance R = R1 + R2",
+        focus: "Add series resistances directly vs reciprocal addition in parallel."
+      };
+    }
+  ];
+
+  var unseen = candidatePool.filter(function(fn){
+    return !seenQuestions[key].has(fn().id);
+  });
+
+  if(unseen.length === 0) {
+    seenQuestions[key].clear();
+    unseen = candidatePool;
+  }
+
+  var qObj = randChoice(unseen)();
+  seenQuestions[key].add(qObj.id);
+  return qObj;
+}
+
+var KEYS=['math','sci','sst','eng','hindi','it'], KEY='boardquest_v1';
+var T=[];
+KEYS.forEach(function(k){
+  CH[k].forEach(function(title, chIdx){
+    T.push({ k: k, title: title, chIdx: chIdx });
+  });
+});
+var N = T.length;
+
+var today=function(){return new Date().toLocaleDateString('en-CA')};
+var yest=function(){return new Date(Date.now()-864e5).toLocaleDateString('en-CA')};
+var S={xp:0,streak:0,last:'',done:{},paid:{},pos:0,qCount:0,weakAreas:[],user:'Student',authAccount:null};
+
+function load(){
+  try{var r=localStorage.getItem(KEY);if(r)merge(JSON.parse(r))}catch(e){}
+  if(S.last&&S.last!==today()&&S.last!==yest())S.streak=0;
+  if(S.authAccount) window.currentUser = S.authAccount;
+}
+function merge(o){
+  if(!o||typeof o!=='object'||!isFinite(o.xp))return;
+  S.xp=Math.max(0,Math.floor(+o.xp));S.streak=Math.max(0,Math.floor(+o.streak)||0);S.last=String(o.last||'');
+  S.done=o.done&&typeof o.done==='object'?o.done:{};S.paid=o.paid&&typeof o.paid==='object'?o.paid:{};
+  S.pos=clamp(Math.floor(+o.pos)||0,0,N-1);S.qCount=Math.floor(+o.qCount)||0;
+  S.weakAreas=Array.isArray(o.weakAreas)?o.weakAreas:[];S.user=String(o.user||'Student');
+  S.authAccount=o.authAccount||null;
+}
+function save(){
+  try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}
+  if(S.authAccount && window.db) {
+    try {
+      var userDoc = doc(window.db, 'boardquest_users', S.authAccount.username);
+      setDoc(userDoc, { profile: S.authAccount, state: S }, {merge:true});
+    } catch(err){}
+  }
+}
+
+function doneCount(){
+  var c = 0;
+  for(var i = 0; i < N; i++) if(S.done[i]) c++;
+  return c;
+}
+
+function touch(){
+  if(S.last===today())return;
+  S.streak=S.last===yest()?S.streak+1:1;S.last=today();
+}
+
+function toast(m){
+  var t=$('toast');if(!t)return;t.textContent=m;t.style.opacity=1;
+  clearTimeout(toast.h);toast.h=setTimeout(function(){t.style.opacity=0},2200);
+}
+
+function addXP(n){
+  var old=Math.floor(S.xp/100)+1;S.xp+=n;touch();save();ui();
+  var nw=Math.floor(S.xp/100)+1;if(nw>old)toast('Level up! You are now level '+nw);
+}
+
+window.toggleSidebar = function() {
+  var sb = $('sidebar'), ov = $('sbOverlay');
+  if(!sb) return;
+  if(sb.classList.contains('-translate-x-full')) {
+    sb.classList.remove('-translate-x-full');
+    if(ov) ov.classList.remove('hidden');
+    window.renderSbChapters();
+  } else {
+    sb.classList.add('-translate-x-full');
+    if(ov) ov.classList.add('hidden');
+  }
+};
+
+window.toggleAiDrawer = function() {
+  var drawer = $('aiDrawer');
+  if(!drawer) return;
+  if(drawer.classList.contains('translate-x-full')) {
+    drawer.classList.remove('translate-x-full');
+  } else {
+    drawer.classList.add('translate-x-full');
+  }
+};
+
+window.renderSbChapters = function() {
+  var subjKey = $('sbSubjSelect').value;
+  var chapSelect = $('sbChapSelect');
+  chapSelect.innerHTML = '';
+  if(CH[subjKey]) {
+    CH[subjKey].forEach(function(title, idx){
+      var opt = document.createElement('option');
+      opt.value = idx;
+      opt.textContent = (idx + 1) + '. ' + title;
+      chapSelect.appendChild(opt);
+    });
+  }
+};
+
+window.launchSbQuiz = function() {
+  var subjKey = $('sbSubjSelect').value;
+  var chapIdx = parseInt($('sbChapSelect').value, 10);
+  for(var i = 0; i < N; i++) {
+    if(T[i].k === subjKey && T[i].chIdx === chapIdx) {
+      window.toggleSidebar();
+      openCard(i);
+      return;
+    }
+  }
+};
+
+window.launchSbNotes = function() {
+  var subjKey = $('sbSubjSelect').value;
+  var chapIdx = parseInt($('sbChapSelect').value, 10);
+  for(var i = 0; i < N; i++) {
+    if(T[i].k === subjKey && T[i].chIdx === chapIdx) {
+      window.toggleSidebar();
+      openCard(i);
+      switchCardTab('notes');
+      return;
+    }
+  }
+};
+
+function updateSidebarRevOverview() {}
+
+function updateAnalyticsUI() {
+  var container = $('subjectBreakdown');
+  if(!container) return;
+  container.innerHTML = '';
+  KEYS.forEach(function(k){
+    var total = CH[k].length;
+    var completed = 0;
+    T.forEach(function(tile, i){
+      if(tile.k === k && S.done[i]) completed++;
+    });
+    var pct = Math.round((completed / total) * 100);
+    var div = document.createElement('div');
+    div.className = 'flex items-center justify-between text-[11px]';
+    div.innerHTML = '<span>' + SUBJ[k].n + '</span><span class="font-bold text-cyan-300">' + completed + '/' + total + ' (' + pct + '%)</span>';
+    container.appendChild(div);
+  });
+
+  var weakBox = $('weakAreasList');
+  if(weakBox) {
+    if(S.weakAreas && S.weakAreas.length > 0) {
+      weakBox.innerHTML = S.weakAreas.map(function(item){ return '• ' + item; }).join('<br>');
+    } else {
+      weakBox.textContent = 'No weak concepts flagged yet. Take chapter quizzes to auto-detect focus areas!';
+    }
+  }
+}
+
+function getAccounts() {
+  try {
+    return JSON.parse(localStorage.getItem('boardquest_accounts') || '{}');
+  } catch(e) { return {}; }
+}
+function saveAccounts(accs) {
+  try {
+    localStorage.setItem('boardquest_accounts', JSON.stringify(accs));
+  } catch(e) {}
+}
+
+window.handleRegister = function(e) {
+  e.preventDefault();
+  var u = $('regUsername').value.trim().toLowerCase();
+  var d = $('regDisplayName').value.trim();
+  var p = $('regPassword').value;
+
+  if(!u || !p || !d) { toast("Please fill in all fields."); return; }
+  var accs = getAccounts();
+  if(accs[u]) { toast("Username already taken! Choose another."); return; }
+
+  var newAcc = { username: u, displayName: d, password: p, created: Date.now() };
+  accs[u] = newAcc;
+  saveAccounts(accs);
+
+  S.authAccount = newAcc;
+  S.user = d;
+  window.currentUser = newAcc;
+  save(); ui();
+  closeModal('registerModal');
+  toast("Account created! Signed in as " + d);
+};
+
+window.handleLogin = function(e) {
+  e.preventDefault();
+  var u = $('loginUsername').value.trim().toLowerCase();
+  var p = $('loginPassword').value;
+
+  var accs = getAccounts();
+  if(!accs[u] || accs[u].password !== p) {
+    toast("Invalid username or password!");
+    return;
+  }
+
+  S.authAccount = accs[u];
+  S.user = accs[u].displayName;
+  window.currentUser = accs[u];
+  save(); ui();
+  closeModal('loginModal');
+  toast("Welcome back, " + accs[u].displayName + "!");
+};
+
+window.skipLoginGuest = function() {
+  closeModal('loginModal');
+  toast("Welcome, Guest! Tap 'Log In' in the sidebar anytime to save progress.");
+};
+
+window.logoutUser = function() {
+  S.authAccount = null;
+  S.user = "Student";
+  window.currentUser = null;
+  save(); ui();
+  toast("Signed out successfully");
+};
+
+function ui(){
+  var lvl=Math.floor(S.xp/100)+1,into=S.xp%100,p=Math.round(doneCount()/N*100);
+  $('lvl').textContent=lvl;$('xpbar').style.width=into+'%';$('xptxt').textContent=into+' / 100 XP';
+  $('xptot').textContent=S.xp;$('streak').textContent=S.streak;$('pct').textContent=p+'%';
+  $('gauge').style.strokeDashoffset=163.36*(1-p/100);
+  $('userNameDisplay').textContent=S.user;
+
+  if(S.authAccount) {
+    $('accountName').textContent = S.authAccount.displayName;
+    $('accountEmail').textContent = '@' + S.authAccount.username;
+    $('userAvatar').src = "https://placehold.co/100x100/22d3ee/05060f?text=" + encodeURIComponent((S.authAccount.displayName||"U")[0]);
+    $('accountLoggedOut').classList.add('hidden');
+    $('accountLoggedIn').classList.remove('hidden');
+  } else {
+    $('accountLoggedOut').classList.remove('hidden');
+    $('accountLoggedIn').classList.add('hidden');
+  }
+
+  for(var i=0;i<N;i++){tiles[i].mark.visible=!!S.done[i];tiles[i].mat.opacity=S.done[i]?.7:.42}
+  updateSidebarRevOverview();
+  updateLeaderboardUI();
+  updateQuestsUI();
+}
+
+function updateLeaderboardUI() {
+  var html = '';
+  
+  if(!S.authAccount) {
+    html = '<div class="p-4 text-center rounded-xl bg-slate-900/80 border border-slate-800 text-slate-300 space-y-2">';
+    html += '<div class="text-2xl">🔒</div>';
+    html += '<div class="font-bold text-xs text-amber-300">Account Login Required</div>';
+    html += '<p class="text-[11px] text-slate-400">Only registered accounts appear on the Friends Leaderboard.</p>';
+    html += '<div class="flex gap-2 justify-center pt-2">';
+    html += '<button onclick="closeModal(\'leaderboardModal\');openModal(\'loginModal\')" class="btn main !py-1.5 !px-3 text-xs">Log In</button>';
+    html += '<button onclick="closeModal(\'leaderboardModal\');openModal(\'registerModal\')" class="btn !py-1.5 !px-3 text-xs border-purple-500/40 text-purple-200">Sign Up</button>';
+    html += '</div></div>';
+    $('leaderboardList').innerHTML = html;
+    return;
+  }
+
+  var accs = getAccounts();
+  var loggedInPlayers = [];
+  Object.keys(accs).forEach(function(u){
+    loggedInPlayers.push({
+      name: accs[u].displayName,
+      username: accs[u].username,
+      xp: accs[u].username === S.authAccount.username ? S.xp : (accs[u].xp || 0),
+      pct: accs[u].username === S.authAccount.username ? Math.round(doneCount()/N*100) : (accs[u].pct || 0),
+      isCurrent: accs[u].username === S.authAccount.username
+    });
+  });
+
+  loggedInPlayers.sort(function(a,b){ return b.xp - a.xp; });
+
+  loggedInPlayers.forEach(function(p, i){
+    html += '<div class="p-2.5 rounded-xl '+(p.isCurrent?'bg-cyan-950/40 border-cyan-400/50':'bg-slate-900 border-slate-800')+' border flex items-center justify-between text-xs">';
+    html += '<div class="flex items-center gap-2"><span class="font-bold text-amber-300 w-4">#'+(i+1)+'</span><span class="font-bold text-cyan-200">'+p.name+' '+(p.isCurrent?'(You)':'')+'</span></div>';
+    html += '<div class="text-right"><span class="font-bold text-cyan-300">'+p.xp+' XP</span> <span class="text-[10px] text-slate-400">('+p.pct+'%)</span></div>';
+    html += '</div>';
+  });
+
+  $('leaderboardList').innerHTML = html;
+}
+
+function updateQuestsUI() {
+  $('q1Status').textContent = S.qCount >= 3 ? "✓ Completed" : S.qCount + "/3";
+  if(S.qCount >= 3) $('q1Status').className = "text-emerald-400 font-bold";
+}
+
+var cv=$('c'),R=new THREE.WebGLRenderer({canvas:cv,antialias:true,alpha:true});
+R.setPixelRatio(Math.min(window.devicePixelRatio||1,2));
+var scene=new THREE.Scene();scene.fog=new THREE.FogExp2(0x05060f,.016);
+var cam=new THREE.PerspectiveCamera(50,1,.1,300);
+scene.add(new THREE.AmbientLight(0x8899ff,.7));
+var L1=new THREE.PointLight(0x22d3ee,1.2,80);L1.position.set(14,16,10);scene.add(L1);
+var L2=new THREE.PointLight(0xc084fc,1.2,80);L2.position.set(-14,10,-12);scene.add(L2);
+
+var sp=[];for(var s=0;s<700;s++){var r=70+Math.random()*60,a=Math.random()*6.283,b=Math.acos(2*Math.random()-1);sp.push(r*Math.sin(b)*Math.cos(a),r*Math.cos(b),r*Math.sin(b)*Math.sin(a))}
+var sg=new THREE.BufferGeometry();sg.setAttribute('position',new THREE.Float32BufferAttribute(sp,3));
+var stars=new THREE.Points(sg,new THREE.PointsMaterial({color:0xaabbff,size:.5,transparent:true,opacity:.8}));scene.add(stars);
+
+var tiles=[],bases=[],boxG=new THREE.BoxGeometry(1.9,.26,1.9),edgeG=new THREE.EdgesGeometry(boxG),boardGrp=new THREE.Group();scene.add(boardGrp);
+T.forEach(function(d,i){
+  var col=new THREE.Color(SUBJ[d.k].c);
+  var mat=new THREE.MeshPhysicalMaterial({color:col,emissive:col,emissiveIntensity:.3,transparent:true,opacity:.42,roughness:.08,metalness:.3,clearcoat:1});
+  var m=new THREE.Mesh(boxG,mat);m.add(new THREE.LineSegments(edgeG,new THREE.LineBasicMaterial({color:col})));
+  var ang=i*.55,rad=4.5+i*.13,base=new THREE.Vector3(Math.cos(ang)*rad,Math.sin(i*.6),Math.sin(ang)*rad);
+  m.position.copy(base);m.rotation.y=-ang;
+  var mk=new THREE.Mesh(new THREE.SphereGeometry(.15,16,16),new THREE.MeshBasicMaterial({color:0xffffff}));mk.position.y=.38;mk.visible=false;m.add(mk);
+  m.mark=mk;m.mat=mat;m.base=base;bases.push(base);tiles.push(m);boardGrp.add(m);
+});
+boardGrp.add(new THREE.Mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3(bases),240,.05,8,false),new THREE.MeshBasicMaterial({color:0x6677ff,transparent:true,opacity:.35})));
+
+var token=new THREE.Group(),core=new THREE.Mesh(new THREE.OctahedronGeometry(.38),new THREE.MeshStandardMaterial({color:0xffffff,emissive:0xffffff,emissiveIntensity:1.2,metalness:.6,roughness:.2}));
+var wire=new THREE.Mesh(new THREE.IcosahedronGeometry(.62,0),new THREE.MeshBasicMaterial({color:0xffffff,wireframe:true,transparent:true,opacity:.6}));
+var tl=new THREE.PointLight(0xffffff,1.6,9);token.add(core,wire,tl);scene.add(token);
+var ring=new THREE.Mesh(new THREE.TorusGeometry(.95,.035,8,48),new THREE.MeshBasicMaterial({color:0xffffff}));ring.rotation.x=Math.PI/2;scene.add(ring);
+
+function paintToken(i){
+  var c=new THREE.Color(SUBJ[T[i].k].c);
+  core.material.color.copy(c);core.material.emissive.copy(c);wire.material.color.copy(c);ring.material.color.copy(c);tl.color.copy(c);
+  L1.color.copy(c);
+}
+
+var th=.8,ph=1.05,dist=window.innerWidth<window.innerHeight?30:22,tgt=new THREE.Vector3(),ptr=new Map(),pd=0,idle=0;
+function pinch(){var a=Array.from(ptr.values());return a.length<2?0:Math.hypot(a[0].x-a[1].x,a[0].y-a[1].y)}
+cv.addEventListener('pointerdown',function(e){cv.setPointerCapture(e.pointerId);ptr.set(e.pointerId,{x:e.clientX,y:e.clientY});pd=pinch();idle=0});
+cv.addEventListener('pointermove',function(e){
+  var o=ptr.get(e.pointerId);if(!o)return;var dx=e.clientX-o.x,dy=e.clientY-o.y;o.x=e.clientX;o.y=e.clientY;idle=0;
+  if(ptr.size===1){th-=dx*.008;ph=clamp(ph-dy*.008,.3,1.55)}
+  else if(ptr.size===2){var d=pinch();dist=clamp(dist-(d-pd)*.06,10,36);pd=d}
+});
+function up(e){ptr.delete(e.pointerId)}
+cv.addEventListener('pointerup',up);cv.addEventListener('pointercancel',up);
+cv.addEventListener('wheel',function(e){e.preventDefault();dist=clamp(dist+e.deltaY*.012,10,36)},{passive:false});
+function resize(){var w=window.innerWidth,h=window.innerHeight;R.setSize(w,h);cam.aspect=w/h;cam.updateProjectionMatrix()}
+window.addEventListener('resize',resize);resize();
+
+var pos=0,hop=null,busy=false,cur=0;
+function hopTo(to){return new Promise(function(res){hop={from:pos,to:to,t0:performance.now(),dur:460,res:res}})}
+function frame(now){
+  requestAnimationFrame(frame);
+  var t=now/1000;
+  for(var i=0;i<N;i++){var m=tiles[i];m.position.y=m.base.y+Math.sin(t*1.2+i)*.08;m.material.emissiveIntensity=i===pos?.55+Math.sin(t*3)*.2:.3}
+  var p;
+  if(hop){
+    var k=Math.min((now-hop.t0)/hop.dur,1),e=k<.5?2*k*k:1-Math.pow(-2*k+2,2)/2,a=tiles[hop.from].position,b=tiles[hop.to].position;
+    p=a.clone().lerp(b,e);p.y+=Math.sin(Math.PI*k)*(1.4+a.distanceTo(b)*.12)+.62;
+    if(k>=1){var h=hop;hop=null;pos=h.to;S.pos=pos;paintToken(pos);h.res()}
+  }else{p=tiles[pos].position.clone();p.y+=.62+Math.sin(t*2.5)*.12}
+  token.position.copy(p);core.rotation.y=t*2;core.rotation.x=t*1.3;wire.rotation.y=-t;
+  ring.position.copy(tiles[pos].position);ring.position.y+=.2;ring.rotation.z=t;
+  idle+=1;if(idle>240&&ptr.size===0)th+=.0008;
+  tgt.lerp(tiles[pos].position.clone().multiplyScalar(.35),.03);
+  cam.position.set(tgt.x+dist*Math.sin(ph)*Math.cos(th),tgt.y+dist*Math.cos(ph),tgt.z+dist*Math.sin(ph)*Math.sin(th));
+  cam.lookAt(tgt);stars.rotation.y=t*.01;R.render(scene,cam);
+}
+
+async function travel(steps){
+  if(busy)return;busy=true;setBtns(true);touch();
+  S.qCount = (S.qCount || 0) + 1;
+  for(var s=0;s<steps;s++){await hopTo((pos+1)%N);if(navigator.vibrate)try{navigator.vibrate(12)}catch(e){}}
+  save();ui();busy=false;setBtns(false);setTimeout(function(){openCard(pos)},300);
+}
+function setBtns(v){$('roll').disabled=v;$('next').disabled=v}
+$('roll').onclick=function(){
+  if(busy)return;busy=true;setBtns(true);var d=$('dice'),n=0,v=1,h=setInterval(function(){v=1+Math.floor(Math.random()*6);d.textContent=v;if(++n>10){clearInterval(h);busy=false;travel(v)}},60);
+};
+$('next').onclick=function(){
+  if(busy)return;
+  if(doneCount()===N){toast('Every chapter is complete. Brilliant!');return}
+  var s=1;while(S.done[(pos+s)%N])s++;
+  $('dice').textContent='+'+s;travel(s);
+};
+
+window.switchCardTab = function(tab) {
+  ['tabQuiz','tabNotes','tabGlossary','tabPaper'].forEach(function(t){ if($(t)) $(t).classList.remove('active'); });
+  ['secQuiz','secNotes','secGlossary','secPaper'].forEach(function(s){ if($(s)) $(s).classList.add('hidden'); });
+  
+  if(tab === 'quiz') { $('tabQuiz').classList.add('active'); $('secQuiz').classList.remove('hidden'); }
+  else if(tab === 'notes') { $('tabNotes').classList.add('active'); $('secNotes').classList.remove('hidden'); loadNotes(); }
+  else if(tab === 'glossary') { $('tabGlossary').classList.add('active'); $('secGlossary').classList.remove('hidden'); loadGlossary(); }
+  else if(tab === 'paper') { $('tabPaper').classList.add('active'); $('secPaper').classList.remove('hidden'); generatePracticePaper(); }
+};
+
+function loadNotes() {
+  var d=T[cur], noteData = NOTES_DATA[d.k] || NOTES_DATA.sci;
+  var html = '<div class="font-bold text-slate-200 mb-1">Key Revision Concepts ('+d.title+'):</div>';
+  html += '<div class="text-slate-300 mb-2">' + noteData.pw + '</div>';
+  html += '<div class="font-bold text-cyan-300 mt-2 mb-0.5">PW Action Plan:</div><ul class="list-disc pl-4 text-slate-400 space-y-0.5">';
+  noteData.steps.forEach(function(st){ html += '<li>'+st+'</li>'; });
+  html += '</ul>';
+  $('notesContent').innerHTML = html;
+}
+
+function loadGlossary() {
+  var d=T[cur], noteData = NOTES_DATA[d.k] || NOTES_DATA.sci;
+  $('glossaryContent').innerHTML = noteData.glossary || "Important terminology and standard board evaluation keywords for " + d.title;
+}
+
+function generatePracticePaper() {
+  var d=T[cur];
+  var paperHtml = '<div class="text-center font-bold text-purple-300 border-b border-white/10 pb-1 mb-2">CBSE Board Mock: '+d.title+'</div>';
+  paperHtml += '<div><b class="text-cyan-300">Section A (1 Mark):</b> 1. MCQs based on ' + d.title + '.</div>';
+  paperHtml += '<div><b class="text-cyan-300">Section B (2 Marks):</b> 2. Define standard terms and relations.</div>';
+  paperHtml += '<div><b class="text-cyan-300">Section C (3 Marks):</b> 3. Short answer derivation or process explanation.</div>';
+  paperHtml += '<div><b class="text-cyan-300">Section D (4 Marks Case Study):</b> 4. Real-world applied scenario.</div>';
+  paperHtml += '<div><b class="text-cyan-300">Section E (5 Marks):</b> 5. Detailed analytical question with labeled diagram.</div>';
+  $('paperContent').innerHTML = paperHtml;
+}
+
+function openCard(i){
+  cur=i;var d=T[i],sj=SUBJ[d.k],md=$('modal');
+  md.style.setProperty('--c',sj.c);
+  $('ficon').textContent=sj.i;$('fsub').textContent=sj.n;$('btag').textContent=sj.n;$('btitle').textContent=d.title;
+  var h=i*37+11,pools=[['1',15+h%10,'MCQ'],['2',8+h%6,'Short'],['3',5+h%5,'Short II'],['4',3+h%3,'Case'],['5',2+h%3,'Long']];
+  $('marks').innerHTML=pools.map(function(p){return '<div class="rounded-xl border border-white/15 bg-white/5 py-1 text-center"><div class="text-xs font-extrabold" style="color:'+sj.c+'">'+p[1]+'</div><div class="text-[8px] text-slate-300">'+p[0]+' mark</div></div>'}).join('');
+  
+  $('quiz').innerHTML='';
+  $('analysisBox').classList.add('hidden');
+  $('quizBtn').innerHTML='<span>⚡ Start Non-Repeating Quiz (+10 XP)</span>';
+  $('done').checked=!!S.done[i];
+  
+  switchCardTab('quiz');
+  $('card').classList.remove('flipped');md.classList.remove('hidden');md.classList.add('flex');
+  clearTimeout(openCard.h);openCard.h=setTimeout(function(){$('card').classList.add('flipped')},750);
+}
+
+$('close').onclick=function(){ $('modal').classList.add('hidden'); $('modal').classList.remove('flex'); };
+$('front').onclick=function(){ $('card').classList.add('flipped'); };
+$('done').onchange=function(){
+  var on=$('done').checked;if(on)S.done[cur]=1;else delete S.done[cur];
+  if(on&&!S.paid[cur]){S.paid[cur]=1;addXP(50);toast('Chapter complete! +50 XP')}else{touch();save();ui()}
+};
+
+var curQ=null;
+$('quizBtn').onclick=function(){
+  var d=T[cur];
+  curQ = generateDynamicQuestion(d.k, d.title, d.chIdx);
+  $('analysisBox').classList.add('hidden');
+  var box=$('quiz'); box.innerHTML='';
+  var p=document.createElement('p');p.className='text-xs font-semibold mb-2 text-slate-200';p.textContent=curQ.q;box.appendChild(p);
+  
+  curQ.o.forEach(function(o,j){
+    var bt=document.createElement('button');
+    bt.className='qopt';
+    bt.textContent=o;
+    bt.onclick=function(){answer(j,box)};
+    box.appendChild(bt);
+  });
+};
+
+function answer(j,box){
+  Array.from(box.querySelectorAll('button')).forEach(function(b,x){
+    b.disabled=true;
+    if(x===curQ.a)b.classList.add('ok');
+    else if(x===j)b.classList.add('bad');
+  });
+
+  if(j===curQ.a){
+    addXP(10); toast('Correct! +10 XP'); $('analysisBox').classList.add('hidden');
+  } else {
+    toast('Incorrect. Diagnostic generated!');
+    $('analysisBox').classList.remove('hidden');
+    var d=T[cur];
+    if(!S.weakAreas.includes(curQ.concept)) { S.weakAreas.push(curQ.concept); save(); ui(); }
+    $('analysisContent').innerHTML = '<b>Core Weak Topic:</b> ' + curQ.concept + '<br><b>Focus:</b> ' + curQ.focus;
+  }
+  $('quizBtn').innerHTML='<span>🔄 Generate Unseen Question (+10 XP)</span>';
+}
+
+var timerInterval=null, timerSeconds=10800, timerActive=true, timerRunning=false;
+function updateTimerDisplay(){
+  var h=Math.floor(timerSeconds/3600), m=Math.floor((timerSeconds%3600)/60), s=timerSeconds%60;
+  var str=(h<10?'0':'')+h+':'+(m<10?'0':'')+m+':'+(s<10?'0':'')+s;
+  $('timerDisplay').textContent=str; $('hudTimerDisplay').textContent=str;
+}
+window.toggleTimerActive=function(){
+  timerActive=!timerActive;
+  $('timerToggleBtn').textContent=timerActive?'ON':'OFF';
+  $('timerToggleBtn').className=timerActive?'px-3 py-1 rounded-full bg-emerald-500/20 border border-emerald-400 text-emerald-300 font-bold text-xs':'px-3 py-1 rounded-full bg-red-500/20 border border-red-400 text-red-300 font-bold text-xs';
+};
+window.setTimerPreset=function(sec){ timerSeconds=sec; updateTimerDisplay(); };
+window.toggleTimerRunning=function(){
+  if(timerRunning){ clearInterval(timerInterval); timerRunning=false; $('timerRunBtn').textContent='Start Timer'; }
+  else {
+    timerRunning=true; $('timerRunBtn').textContent='Pause Timer';
+    timerInterval=setInterval(function(){
+      if(timerSeconds>0){ timerSeconds--; updateTimerDisplay(); }
+      else { clearInterval(timerInterval); timerRunning=false; toast('Time is up!'); }
+    },1000);
+  }
+};
+window.resetTimer=function(){ clearInterval(timerInterval); timerRunning=false; timerSeconds=10800; updateTimerDisplay(); $('timerRunBtn').textContent='Start Timer'; };
+window.startPracticeTimer=function(){ closeModal('modal'); openModal('timerModal'); window.setTimerPreset(10800); window.toggleTimerRunning(); };
+
+window.sendAiMessage=function(){
+  var inp=$('aiInput'), txt=inp.value.trim(); if(!txt)return;
+  appendAiMessage('user', txt); inp.value='';
+  
+  var aiBox=$('aiChatBox');
+  var loadingDiv=document.createElement('div');
+  loadingDiv.className='p-2 rounded-xl bg-slate-900 border border-slate-800 text-slate-400 text-[11px] animate-pulse';
+  loadingDiv.textContent='Gemini AI is thinking...';
+  aiBox.appendChild(loadingDiv); aiBox.scrollTop=aiBox.scrollHeight;
+
+  var d=T[cur];
+  var prompt="System Instruction: You are a friendly Class 10 CBSE teacher. User prompt: " + txt + " (Current chapter: " + d.title + ")";
+
+  fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key=`, {
+    method: 'POST',
+    headers: {'Content-Type':'application/json'},
+    body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] })
+  }).then(function(r){ return r.json(); }).then(function(data){
+    loadingDiv.remove();
+    var reply = data.candidates?.[0]?.content?.parts?.[0]?.text || "I am here to help you revise Class 10 concepts!";
+    appendAiMessage('ai', reply);
+  }).catch(function(){
+    loadingDiv.remove();
+    appendAiMessage('ai', "To revise " + d.title + ", focus on standard NCERT definitions, sample numericals, and labeled diagrams!");
+  });
+};
+
+window.sendAiPrompt=function(p){ $('aiInput').value=p; window.sendAiMessage(); };
+window.askAiAboutWrongQ=function(){ toggleAiDrawer(); window.sendAiPrompt("I got this question wrong: " + (curQ?curQ.q:"") + ". Explain this topic clearly."); };
+
+function appendAiMessage(sender, msg) {
+  var aiBox=$('aiChatBox');
+  var d=document.createElement('div');
+  d.className=sender==='user'?'p-2 rounded-xl bg-cyan-900/40 border border-cyan-500/30 text-slate-200 text-right ml-4':'p-2.5 rounded-xl bg-slate-900 border border-slate-800 text-slate-200 mr-4 leading-relaxed';
+  d.innerHTML=msg.replace(/\n/g, '<br>');
+  aiBox.appendChild(d); aiBox.scrollTop=aiBox.scrollHeight;
+}
+
+var tutSteps = [
+  { icon: '🎲', title: '3D Board & Dice', desc: 'Roll the dice to navigate across 100+ CBSE Class 10 chapters in 3D!' },
+  { icon: '📚', title: 'Notes & Key Words', desc: 'Access comprehensive NCERT/Physics Wallah notes and high-scoring terminology.' },
+  { icon: '⏱️', title: 'Practice Timer', desc: 'Simulate 3-Hour Board Exams or 25-Min Pomodoro study sessions.' },
+  { icon: '✨', title: 'Gemini AI Tutor', desc: 'Chat anytime with your AI Personal Teacher for instant doubt solving!' }
+];
+var tutIdx = 0;
+window.startTutorial = function() { toggleSidebar(); tutIdx=0; renderTutStep(); openModal('tutorialModal'); };
+function renderTutStep() {
+  var s = tutSteps[tutIdx];
+  $('tutStepIcon').textContent = s.icon; $('tutStepTitle').textContent = s.title; $('tutStepDesc').textContent = s.desc;
+}
+window.nextTutStep = function() {
+  if(tutIdx < tutSteps.length - 1) { tutIdx++; renderTutStep(); }
+  else closeModal('tutorialModal');
+};
+window.prevTutStep = function() { if(tutIdx > 0) { tutIdx--; renderTutStep(); } };
+
+load(); pos=S.pos; paintToken(pos); ui(); updateTimerDisplay(); requestAnimationFrame(frame);
+
+if(!S.authAccount) {
+  setTimeout(function(){ openModal('loginModal'); }, 600);
+}
+})();
+</script>
 </body>
 </html>
