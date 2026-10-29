@@ -511,7 +511,7 @@ body{background:radial-gradient(ellipse at 50% 40%,#10163a 0%,#05060f 70%);overs
     </div>
 
     <div class="text-[11px] text-slate-400 my-2 px-1">
-      <span>🔒 Only verified, signed-in Google accounts appear on this leaderboard.</span>
+      <span>🔒 Only verified, signed-in accounts appear on this leaderboard.</span>
     </div>
 
     <div id="leaderboardList" class="my-2 space-y-1.5 overflow-y-auto max-h-[50vh] pr-1 text-xs"></div>
@@ -707,7 +707,7 @@ function generateDynamicQuestion(subjKey, chapterName, chapIdx) {
   return qObj;
 }
 
-var KEYS=['math','sci','sst','eng','hindi','it'], KEY='boardquest_v1';
+var KEYS=['math','sci','sst','eng','hindi','it'], KEY='boardquest_v2';
 var T=[];
 KEYS.forEach(function(k){
   CH[k].forEach(function(title, chIdx){
@@ -720,27 +720,65 @@ var today=function(){return new Date().toLocaleDateString('en-CA')};
 var yest=function(){return new Date(Date.now()-864e5).toLocaleDateString('en-CA')};
 var S={xp:0,streak:0,last:'',done:{},paid:{},pos:0,qCount:0,weakAreas:[],user:'Student',authAccount:null};
 
+function getAccounts() {
+  try {
+    return JSON.parse(localStorage.getItem('boardquest_accounts') || '{}');
+  } catch(e) { return {}; }
+}
+function saveAccounts(accs) {
+  try {
+    localStorage.setItem('boardquest_accounts', JSON.stringify(accs));
+  } catch(e) {}
+}
+
 function load(){
-  try{var r=localStorage.getItem(KEY);if(r)merge(JSON.parse(r))}catch(e){}
+  try{
+    var activeUserKey = localStorage.getItem('boardquest_active_user');
+    if(activeUserKey) {
+      var accs = getAccounts();
+      if(accs[activeUserKey]) {
+        S.authAccount = accs[activeUserKey];
+        S.user = accs[activeUserKey].displayName;
+        if(accs[activeUserKey].state) {
+          merge(accs[activeUserKey].state);
+        }
+      }
+    } else {
+      var r=localStorage.getItem(KEY);if(r)merge(JSON.parse(r));
+    }
+  }catch(e){}
   if(S.last&&S.last!==today()&&S.last!==yest())S.streak=0;
   if(S.authAccount) window.currentUser = S.authAccount;
 }
+
 function merge(o){
-  if(!o||typeof o!=='object'||!isFinite(o.xp))return;
-  S.xp=Math.max(0,Math.floor(+o.xp));S.streak=Math.max(0,Math.floor(+o.streak)||0);S.last=String(o.last||'');
-  S.done=o.done&&typeof o.done==='object'?o.done:{};S.paid=o.paid&&typeof o.paid==='object'?o.paid:{};
-  S.pos=clamp(Math.floor(+o.pos)||0,0,N-1);S.qCount=Math.floor(+o.qCount)||0;
-  S.weakAreas=Array.isArray(o.weakAreas)?o.weakAreas:[];S.user=String(o.user||'Student');
-  S.authAccount=o.authAccount||null;
+  if(!o||typeof o!=='object')return;
+  if(isFinite(o.xp)) S.xp=Math.max(0,Math.floor(+o.xp));
+  if(isFinite(o.streak)) S.streak=Math.max(0,Math.floor(+o.streak)||0);
+  if(o.last) S.last=String(o.last||'');
+  if(o.done) S.done=o.done&&typeof o.done==='object'?o.done:{};
+  if(o.paid) S.paid=o.paid&&typeof o.paid==='object'?o.paid:{};
+  if(isFinite(o.pos)) S.pos=clamp(Math.floor(+o.pos)||0,0,N-1);
+  if(isFinite(o.qCount)) S.qCount=Math.floor(+o.qCount)||0;
+  if(Array.isArray(o.weakAreas)) S.weakAreas=o.weakAreas;
+  if(o.user) S.user=String(o.user||'Student');
+  if(o.authAccount) S.authAccount=o.authAccount;
 }
+
 function save(){
-  try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}
-  if(S.authAccount && window.db) {
-    try {
-      var userDoc = doc(window.db, 'boardquest_users', S.authAccount.username);
-      setDoc(userDoc, { profile: S.authAccount, state: S }, {merge:true});
-    } catch(err){}
-  }
+  try{
+    localStorage.setItem(KEY,JSON.stringify(S));
+    if(S.authAccount) {
+      var accs = getAccounts();
+      if(accs[S.authAccount.username]) {
+        accs[S.authAccount.username].state = S;
+        accs[S.authAccount.username].xp = S.xp;
+        accs[S.authAccount.username].pct = Math.round(doneCount()/N*100);
+        saveAccounts(accs);
+      }
+      localStorage.setItem('boardquest_active_user', S.authAccount.username);
+    }
+  }catch(e){}
 }
 
 function doneCount(){
@@ -855,17 +893,6 @@ function updateAnalyticsUI() {
   }
 }
 
-function getAccounts() {
-  try {
-    return JSON.parse(localStorage.getItem('boardquest_accounts') || '{}');
-  } catch(e) { return {}; }
-}
-function saveAccounts(accs) {
-  try {
-    localStorage.setItem('boardquest_accounts', JSON.stringify(accs));
-  } catch(e) {}
-}
-
 window.handleRegister = function(e) {
   e.preventDefault();
   var u = $('regUsername').value.trim().toLowerCase();
@@ -876,12 +903,13 @@ window.handleRegister = function(e) {
   var accs = getAccounts();
   if(accs[u]) { toast("Username already taken! Choose another."); return; }
 
-  var newAcc = { username: u, displayName: d, password: p, created: Date.now() };
+  var newAcc = { username: u, displayName: d, password: p, created: Date.now(), state: {xp:0, streak:0, done:{}, paid:{}, pos:0, qCount:0, weakAreas:[]} };
   accs[u] = newAcc;
   saveAccounts(accs);
 
   S.authAccount = newAcc;
   S.user = d;
+  merge(newAcc.state);
   window.currentUser = newAcc;
   save(); ui();
   closeModal('registerModal');
@@ -901,6 +929,7 @@ window.handleLogin = function(e) {
 
   S.authAccount = accs[u];
   S.user = accs[u].displayName;
+  if(accs[u].state) merge(accs[u].state);
   window.currentUser = accs[u];
   save(); ui();
   closeModal('loginModal');
@@ -913,11 +942,14 @@ window.skipLoginGuest = function() {
 };
 
 window.logoutUser = function() {
+  localStorage.removeItem('boardquest_active_user');
   S.authAccount = null;
   S.user = "Student";
+  S.xp = 0; S.streak = 0; S.done = {}; S.pos = 0; S.weakAreas = [];
   window.currentUser = null;
   save(); ui();
   toast("Signed out successfully");
+  openModal('loginModal');
 };
 
 function ui(){
@@ -938,7 +970,7 @@ function ui(){
     $('accountLoggedIn').classList.add('hidden');
   }
 
-  for(var i=0;i<N;i++){tiles[i].mark.visible=!!S.done[i];tiles[i].mat.opacity=S.done[i]?.7:.42}
+  for(var i=0;i<N;i++){if(tiles[i]){tiles[i].mark.visible=!!S.done[i];tiles[i].mat.opacity=S.done[i]?.7:.42}}
   updateSidebarRevOverview();
   updateLeaderboardUI();
   updateQuestsUI();
